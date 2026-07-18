@@ -18,6 +18,10 @@ extension ProcessStore {
             if preferredTargetIsCurrent,
                rhs.identity == automaticThermalPreferredProcessID { return false }
 
+            let leftRelated = isCrossOverRelated(lhs)
+            let rightRelated = isCrossOverRelated(rhs)
+            if leftRelated != rightRelated { return leftRelated }
+
             let leftScore = automaticThermalConfiguration.matchScore(for: lhs) ?? 0
             let rightScore = automaticThermalConfiguration.matchScore(for: rhs) ?? 0
             if leftScore != rightScore { return leftScore > rightScore }
@@ -38,6 +42,10 @@ extension ProcessStore {
 
     var automaticThermalResolvedCandidateCount: Int {
         automaticThermalGameCandidates.filter { $0.windowsExecutableName != nil }.count
+    }
+
+    private var automaticCrossOverMatchCandidates: [ProcessSnapshot] {
+        crossOverSelectableProcesses.filter(isCrossOverRelated)
     }
 
     var temperatureSensorAvailable: Bool {
@@ -250,7 +258,7 @@ extension ProcessStore {
             automaticThermalPreferredExecutableNeedle = nil
             automaticThermalSessionIDs.formUnion(automaticSessionIdentities(around: process))
             automaticThermalConfiguration = configuration
-            automaticThermalStatus = "Proceso del árbol seleccionado: \(process.displayName)"
+            automaticThermalStatus = "Proceso seleccionado: \(process.displayName)"
             automaticThermalReason = "Selección manual explícita sin .exe; se controla esta sesión y sus descendientes"
             addLog("CrossOver: PID \(process.pid) seleccionado sin nombre .exe; asociación limitada a la sesión.")
             return
@@ -1053,7 +1061,8 @@ extension ProcessStore {
     }
 
     private func bestAutomaticThermalMatch() -> ProcessSnapshot? {
-        let exact = crossOverSelectableProcesses
+        let matchCandidates = automaticCrossOverMatchCandidates
+        let exact = matchCandidates
             .compactMap { process -> (ProcessSnapshot, Int)? in
                 guard let score = automaticThermalConfiguration.matchScore(for: process) else { return nil }
                 let roleBonus = isCrossOverGameCandidate(process) ? 200 : 0
@@ -1075,8 +1084,10 @@ extension ProcessStore {
         // evitando elegir entre dos sesiones realmente ambiguas.
         let strongExecutableMatches = CrossOverExecutableResolver.strongMatches(
             target: automaticThermalConfiguration.executableContains,
-            among: crossOverSelectableProcesses.filter {
-                !isCrossOverLauncher($0) && !isCrossOverHelper($0)
+            among: matchCandidates.filter {
+                !isCrossOverInfrastructure($0)
+                    && !isCrossOverLauncher($0)
+                    && !isCrossOverHelper($0)
             }
         )
         if CrossOverExecutableResolver.isUnambiguousRecoverySet(strongExecutableMatches) {
@@ -1094,9 +1105,10 @@ extension ProcessStore {
             }.first
         }
 
-        let sessionCandidates = crossOverSelectableProcesses
+        let sessionCandidates = matchCandidates
             .filter { process in
                 automaticThermalSessionIDs.contains(process.identity)
+                    && !isCrossOverInfrastructure(process)
                     && !isCrossOverLauncher(process)
                     && !isCrossOverHelper(process)
             }
@@ -1118,7 +1130,7 @@ extension ProcessStore {
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard !configuredBottle.isEmpty else { return nil }
 
-        let unresolved = crossOverSelectableProcesses
+        let unresolved = matchCandidates
             .filter { process in
                 guard process.windowsExecutableEvidenceScore(
                     named: automaticThermalConfiguration.executableContains

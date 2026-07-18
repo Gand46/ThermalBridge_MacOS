@@ -1,22 +1,22 @@
-# Informe de auditoría e integración — RC3.8 build 35
+# Informe de auditoría e integración — RC3.9 build 36
 
 Fecha de preparación: 18 de julio de 2026  
-Base inmediata: ThermalBridge 0.7.0 RC3.7 build 34  
+Base inmediata: ThermalBridge 0.7.0 RC3.8 build 35  
 Resultado: prevalidación estática portable aprobada; validación nativa pendiente en Apple Silicon
 
 ## Procedencia e integridad
 
-- La candidata parte del árbol RC3.7 build 34 de selección manual ampliada.
+- La candidata parte del árbol RC3.8 build 35 de selector completo CrossOver.
 - `BASELINE_BETA6_SHA256.txt` continúa validando los cuatro componentes históricos congelados.
-- `RC38_FROZEN_SHA256.txt` cubre fuentes, pruebas, scripts operativos, documentación de release y configuración de bundle de build 35.
+- `RC39_FROZEN_SHA256.txt` cubre fuentes, pruebas, scripts operativos, documentación de release y configuración de bundle de build 36.
 - El cambio no modifica el motor térmico, el limitador, sensores, políticas macOS ni telemetría de sesión.
 
-## Cambios funcionales de selección CrossOver
+## Cambios funcionales de selección manual
 
-- El selector manual pasa de mostrar candidatos filtrados a mostrar el árbol CrossOver completo no protegido.
-- Los nodos de infraestructura Wine, launchers y ayudantes quedan visibles para selección explícita cuando cuelgan de CrossOver.
-- Las asociaciones sin `.exe` continúan limitadas a la sesión actual y no arman autoaplicación persistente.
-- La búsqueda automática por `.exe` y la recuperación por botella siguen evitando infraestructura, launchers y ayudantes ambiguos sin confirmación explícita.
+- El selector manual ya no exige que el proceso publique `.exe` ni evidencia CrossOver directa o por ancestros.
+- Todos los procesos no protegidos quedan visibles para permitir escoger el PID que el usuario ve en Monitor de Actividad.
+- Los procesos con evidencia CrossOver se ordenan primero; el resto queda como fallback de selección explícita.
+- La autoaplicación por `.exe` y la recuperación automática siguen usando únicamente candidatos con evidencia CrossOver.
 
 ## Límites de esta validación
 

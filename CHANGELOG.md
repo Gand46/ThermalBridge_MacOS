@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0 RC3.9 build 36 — selector manual sin requisito CrossOver/.exe
+
+- Parte de RC3.8 build 35 sin modificar el motor térmico, el limitador ni los valores predeterminados.
+- Retira del selector manual el requisito de detectar `.exe` o evidencia CrossOver: se muestran todos los procesos no protegidos para permitir escoger el PID visto en Monitor de Actividad.
+- Ordena primero los procesos que sí tienen evidencia CrossOver, pero conserva el resto como fallback manual explícito.
+- Mantiene la autoaplicación y la recuperación automática limitadas a procesos con evidencia CrossOver para no controlar procesos ajenos sin confirmación.
+- Actualiza la UI para hablar de proceso seleccionable explícito cuando no hay `.exe`.
+- Compilación 36.
+
 ## 0.7.0 RC3.8 build 35 — selector completo del árbol CrossOver
 
 - Parte de RC3.7 build 34 sin modificar el motor térmico, el limitador ni los valores predeterminados.

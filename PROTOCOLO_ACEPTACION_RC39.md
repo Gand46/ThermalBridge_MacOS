@@ -1,8 +1,8 @@
-# Protocolo de aceptación — ThermalBridge 0.7.0 RC3.8
+# Protocolo de aceptación — ThermalBridge 0.7.0 RC3.9
 
 ## Regla de la candidata
 
-RC3.8 es una versión congelada. Si se modifica cualquier fuente después de iniciar este protocolo, el resultado deja de pertenecer a RC3.8 y debe publicarse como una nueva candidata o volver a beta.
+RC3.9 es una versión congelada. Si se modifica cualquier fuente después de iniciar este protocolo, el resultado deja de pertenecer a RC3.9 y debe publicarse como una nueva candidata o volver a beta.
 
 ## 1. Validación nativa obligatoria
 
@@ -13,7 +13,7 @@ RC3.8 es una versión congelada. Si se modifica cualquier fuente después de ini
 5. Exige como última línea de resultado:
 
 ```text
-VALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.8 (35)
+VALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.9 (36)
 ```
 
 La candidata queda bloqueada si falla un hash, typecheck, prueba, helper, arquitectura, firma o muestra térmica.
@@ -22,7 +22,7 @@ La candidata queda bloqueada si falla un hash, typecheck, prueba, helper, arquit
 
 1. Detén el control de la versión instalada.
 2. Cierra ThermalBridge normalmente.
-3. Ejecuta `Instalar_en_Aplicaciones.command` desde RC3.8.
+3. Ejecuta `Instalar_en_Aplicaciones.command` desde RC3.9.
 4. Abre `~/Applications/ThermalBridge.app`.
 5. Confirma que se conservan el juego objetivo, botella, perfil, objetivos térmicos y toggles compatibles.
 6. Confirma que Game Mode no aparece como opción activa.
@@ -104,7 +104,7 @@ Debe contener decisiones, energía/QoS cuando estén disponibles y eventos de se
 
 ## 9. Periodo de observación
 
-Mantén RC3.8 instalada durante al menos tres sesiones reales adicionales o 24 horas de uso normal, lo que ocurra después. Registra:
+Mantén RC3.9 instalada durante al menos tres sesiones reales adicionales o 24 horas de uso normal, lo que ocurra después. Registra:
 
 - cierres inesperados;
 - procesos que no se reanudan;

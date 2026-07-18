@@ -183,7 +183,7 @@ struct AutomaticThermalView: View {
                 if let selectedProcessID,
                    let selected = store.process(for: selectedProcessID),
                    selected.windowsExecutableName == nil {
-                    Label("CrossOver no publicó el .exe de este PID. Puedes escribirlo o usar Buscar .exe… para armar la autoaplicación; si pulsas Usar selección sin .exe, se controlará este proceso del árbol solo en la sesión actual.",
+                    Label("Este PID no publicó un .exe. Puedes escribirlo o usar Buscar .exe… para armar la autoaplicación; si pulsas Usar selección sin .exe, se controlará este proceso explícito solo en la sesión actual.",
                           systemImage: "exclamationmark.triangle")
                         .font(.caption)
                         .foregroundColor(Color.orange)
@@ -208,7 +208,7 @@ struct AutomaticThermalView: View {
                     .font(.caption)
                     .foregroundColor(Color.secondary)
                     Spacer()
-                    Text("\(store.automaticThermalResolvedCandidateCount) .exe detectados · \(store.automaticThermalGameCandidates.count) procesos del árbol seleccionables")
+                    Text("\(store.automaticThermalResolvedCandidateCount) .exe detectados · \(store.automaticThermalGameCandidates.count) procesos seleccionables")
                         .font(.caption2.monospacedDigit())
                         .foregroundColor(Color.secondary)
                     Toggle("Aplicar al volver a abrir",
@@ -476,7 +476,7 @@ struct AutomaticThermalView: View {
         if let executable = process.windowsExecutableName {
             return "\(executable)\(bottle) · PID \(process.pid) · CPU \(store.treeCPUText(for: process))"
         }
-        return "Proceso del árbol CrossOver · \(process.displayName)\(bottle) · PID \(process.pid) · CPU \(store.treeCPUText(for: process))"
+        return "Proceso seleccionable · \(process.displayName)\(bottle) · PID \(process.pid) · CPU \(store.treeCPUText(for: process))"
     }
 
 
