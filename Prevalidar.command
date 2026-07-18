@@ -22,7 +22,7 @@ sha_check() {
 }
 
 printf '[1/7] Verificando versión y estructura fuente...\n'
-[[ -f Resources/Info.plist ]] || fail "falta Resources/Info.plist"
+[[ -f Resources/https://github.com/Gand46/ThermalBridge_MacOS/pull/3/conflict?name=CHANGELOG.md&ancestor_oid=5e6dfb11fec81ee011326f90d20a6310ffe56fdf&base_oid=59c34ccac5b8ab08eff55029cd432b08ca4d0b04&head_oid=04ff285a90c141a9f653ecd44b1364b813c4cfccInfo.plist ]] || fail "falta Resources/Info.plist"
 [[ -f Sources/AutomaticThermalView.swift ]] || fail "falta AutomaticThermalView"
 [[ -f Sources/ThermalControlLogic.swift ]] || fail "falta ThermalControlLogic"
 [[ -f Sources/ProcessStore.swift ]] || fail "falta ProcessStore"
