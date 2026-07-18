@@ -1123,6 +1123,7 @@ extension ProcessStore {
                 guard process.windowsExecutableEvidenceScore(
                     named: automaticThermalConfiguration.executableContains
                 ) == nil,
+                !isCrossOverInfrastructure(process),
                 !isCrossOverLauncher(process),
                 !isCrossOverHelper(process),
                 let detectedBottle = process.crossOverBottleName else { return false }

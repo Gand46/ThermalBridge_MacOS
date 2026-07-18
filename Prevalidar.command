@@ -33,13 +33,13 @@ printf '[1/7] Verificando versión y estructura fuente...\n'
 [[ ! -e RC3_FROZEN_SHA256.txt ]] || fail "reapareció el manifiesto RC3 obsoleto"
 
 grep -q '<string>0.7.0</string>' Resources/Info.plist || fail "CFBundleShortVersionString inesperado"
-grep -q '<string>34</string>' Resources/Info.plist || fail "CFBundleVersion debe ser 34"
-grep -q 'ThermalBridge Auto 0.7.0 RC3.7' README.md || fail "README no declara RC3.7"
-grep -q 'VALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.7 (34)' README.md || fail "README no documenta la validación RC3.7"
+grep -q '<string>35</string>' Resources/Info.plist || fail "CFBundleVersion debe ser 35"
+grep -q 'ThermalBridge Auto 0.7.0 RC3.8' README.md || fail "README no declara RC3.8"
+grep -q 'VALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.8 (35)' README.md || fail "README no documenta la validación RC3.8"
 
 printf '[2/7] Verificando manifiestos congelados...\n'
 sha_check BASELINE_BETA6_SHA256.txt
-sha_check RC37_FROZEN_SHA256.txt
+sha_check RC38_FROZEN_SHA256.txt
 
 printf '[3/7] Verificando sintaxis Bash portable...\n'
 for script in \
@@ -87,5 +87,5 @@ grep -q 'privacy' README.md SECURITY.md 2>/dev/null || true
 ! grep -REq 'screenshot|captura de pantalla' Sources || fail "no debe incorporarse captura de pantalla en fuentes"
 
 printf '[7/7] Prevalidación completada.\n'
-printf 'PREVALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.7 (34)\n'
+printf 'PREVALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.8 (35)\n'
 printf 'Nota: build nativo, firma, sensores y CrossOver real siguen pendientes en macOS Apple Silicon.\n'

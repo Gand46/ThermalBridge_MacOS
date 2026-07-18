@@ -1,10 +1,10 @@
-# ThermalBridge Auto 0.7.0 RC3.7
+# ThermalBridge Auto 0.7.0 RC3.8
 
 Candidata intermedia de estabilización ARM64 para controlar térmicamente juegos de CrossOver en Apple Silicon. No modifica Wine, D3DMetal, DXVK, botellas ni archivos del juego.
 
-## Alcance de RC3.7
+## Alcance de RC3.8
 
-RC3.7 build 34 parte de RC3.6 build 33 y amplía la selección manual para juegos anidados dentro del árbol CrossOver. La lista permite escoger procesos relacionados aunque el `.exe` esté oculto o el host esté clasificado como launcher/ayudante; la autoaplicación persistente sigue requiriendo un `.exe` válido. No cambia el motor térmico, el limitador, sensores, políticas macOS ni los valores predeterminados.
+RC3.8 build 35 parte de RC3.7 build 34 y completa el selector manual del árbol CrossOver: la lista permite escoger cualquier proceso relacionado no protegido, incluyendo infraestructura Wine, launchers y ayudantes, aunque no exista `.exe` visible. La autoaplicación persistente sigue requiriendo un `.exe` válido. No cambia el motor térmico, el limitador, sensores, políticas macOS ni los valores predeterminados.
 
 Permanecen sin cambios:
 
@@ -16,12 +16,12 @@ Permanecen sin cambios:
 - rusage, energía, evidencia QoS y telemetría JSONL;
 - guardianes de suspensión, limitador y pantalla.
 
-## Selección manual ampliada por árbol CrossOver
+## Selector completo del árbol CrossOver
 
-- Los procesos relacionados con CrossOver siguen visibles aunque estén clasificados como launcher o ayudante, siempre que no estén protegidos.
+- Los procesos relacionados con CrossOver siguen visibles aunque estén clasificados como infraestructura Wine, launcher o ayudante, siempre que no estén protegidos.
 - **Usar selección** puede vincular un proceso sin `.exe` como asociación explícita de la sesión actual y controlar sus descendientes.
 - Esa asociación por árbol no se rearma automáticamente al reabrir; para autoaplicación persistente sigue siendo necesario escribir o elegir un `.exe` válido.
-- La búsqueda automática y la recuperación fuerte continúan evitando launchers y ayudantes ambiguos si no hay confirmación explícita del usuario.
+- La búsqueda automática y la recuperación fuerte continúan evitando infraestructura, launchers y ayudantes ambiguos si no hay confirmación explícita del usuario.
 
 ## Infraestructura de Fase B
 
@@ -70,7 +70,7 @@ Permanecen sin cambios:
 
 ## Funciones excluidas
 
-Game Mode permanece retirado. RC3.7 no contiene su controlador ni ejecuta herramientas de Xcode para modificarlo.
+Game Mode permanece retirado. RC3.8 no contiene su controlador ni ejecuta herramientas de Xcode para modificarlo.
 
 También permanecen excluidos:
 
@@ -84,12 +84,12 @@ IOReport continúa únicamente como sonda de disponibilidad por carga dinámica 
 
 ## Congelación de la candidata
 
-RC3.7 incluye dos manifiestos activos:
+RC3.8 incluye dos manifiestos activos:
 
 - `BASELINE_BETA6_SHA256.txt`: protege los componentes térmicos históricos.
-- `RC37_FROZEN_SHA256.txt`: protege fuentes, pruebas, scripts operativos, documentación de release y configuración de bundle de la candidata.
+- `RC38_FROZEN_SHA256.txt`: protege fuentes, pruebas, scripts operativos, documentación de release y configuración de bundle de la candidata.
 
-El manifiesto RC3 anterior no se distribuye porque marca correctamente como distintos los archivos integrados y producía falsos fallos fuera de su candidata original. La procedencia inmediata se documenta en este README y en `CHANGELOG.md`. `Validar.command` y `Prevalidar.command` fallan si cambia la línea Beta 6 o cualquier archivo incluido en `RC37_FROZEN_SHA256.txt`.
+El manifiesto RC3 anterior no se distribuye porque marca correctamente como distintos los archivos integrados y producía falsos fallos fuera de su candidata original. La procedencia inmediata se documenta en este README y en `CHANGELOG.md`. `Validar.command` y `Prevalidar.command` fallan si cambia la línea Beta 6 o cualquier archivo incluido en `RC38_FROZEN_SHA256.txt`.
 
 ## Prevalidación estática portable
 
@@ -102,7 +102,7 @@ Prevalidar.command
 Debe finalizar con:
 
 ```text
-PREVALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.7 (34)
+PREVALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.8 (35)
 ```
 
 Esta comprobación verifica estructura fuente, manifiestos congelados, sintaxis Bash, ausencia de artefactos generados versionados y exclusiones funcionales críticas. No sustituye el build nativo, la firma, los sensores ni las pruebas físicas.
@@ -118,12 +118,12 @@ Validar.command
 Debe finalizar con:
 
 ```text
-VALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.7 (34)
+VALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.8 (35)
 ```
 
 El validador comprueba:
 
-- hashes Beta 6 y RC3.7;
+- hashes Beta 6 y RC3.8;
 - ausencia de Game Mode y QoS-first;
 - typecheck Swift completo;
 - suites de lógica, sensores, CrossOver, energía, QoS y telemetría;
@@ -136,7 +136,7 @@ El validador comprueba:
 - muestra física del sensor;
 - ZIP versionado y verificable del proyecto fuente.
 
-Después ejecuta `PROTOCOLO_ACEPTACION_RC37.md`. El build y las pruebas físicas requieren macOS y una Mac Apple Silicon.
+Después ejecuta `PROTOCOLO_ACEPTACION_RC38.md`. El build y las pruebas físicas requieren macOS y una Mac Apple Silicon.
 
 ## Instalación
 
@@ -153,7 +153,7 @@ La aplicación se instala en `~/Applications/ThermalBridge.app`. La firma es loc
 Cada validación correcta genera automáticamente un ZIP versionado del proyecto fuente en `releases/`. El nombre contiene la versión, la candidata y el build, por ejemplo:
 
 ```text
-ThermalBridge_v0.7.0-RC3.7-build34-project.zip
+ThermalBridge_v0.7.0-RC3.8-build35-project.zip
 ```
 
 El paquete excluye `.build`, `dist`, metadatos locales, el registro transitorio de compilación y ZIP anteriores. También puede generarse manualmente mediante:
@@ -164,7 +164,7 @@ Empaquetar_Proyecto.command
 
 ## Criterio para 0.7.0 final
 
-RC3.7 puede promoverse sin cambios cuando:
+RC3.8 puede promoverse sin cambios cuando:
 
 - compila y firma correctamente en el equipo objetivo;
 - no reproduce la regresión de Beta 7;
@@ -184,9 +184,9 @@ Cualquier cambio de fuente exige una nueva candidata.
 
 ## Versión
 
-- Aplicación: `0.7.0 RC3.7`.
-- Compilación: `34`.
-- Base inmediata: RC3.6 build 33.
+- Aplicación: `0.7.0 RC3.8`.
+- Compilación: `35`.
+- Base inmediata: RC3.7 build 34.
 - Base térmica: Beta 6 build 19.
 - Arquitectura: Apple Silicon ARM64.
 - macOS mínimo: 14.0.

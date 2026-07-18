@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0 RC3.8 build 35 — selector completo del árbol CrossOver
+
+- Parte de RC3.7 build 34 sin modificar el motor térmico, el limitador ni los valores predeterminados.
+- El selector manual muestra todo el árbol CrossOver no protegido, incluidos nodos de infraestructura Wine, launchers y ayudantes.
+- Conserva la selección por sesión de procesos sin `.exe` y mantiene la autoaplicación persistente restringida a objetivos con `.exe` válido.
+- Refuerza que la recuperación automática por botella no elija infraestructura Wine ambigua.
+- Actualiza la etiqueta de UI para hablar de procesos del árbol CrossOver, no solo de hosts sin `.exe`.
+- Compilación 35.
+
 ## 0.7.0 RC3.7 build 34 — selección manual ampliada por árbol CrossOver
 
 - Parte de RC3.6 build 33 sin modificar el motor térmico, el limitador ni los valores predeterminados.

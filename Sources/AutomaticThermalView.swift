@@ -476,7 +476,7 @@ struct AutomaticThermalView: View {
         if let executable = process.windowsExecutableName {
             return "\(executable)\(bottle) · PID \(process.pid) · CPU \(store.treeCPUText(for: process))"
         }
-        return "Proceso CrossOver sin .exe · \(process.displayName)\(bottle) · PID \(process.pid) · CPU \(store.treeCPUText(for: process))"
+        return "Proceso del árbol CrossOver · \(process.displayName)\(bottle) · PID \(process.pid) · CPU \(store.treeCPUText(for: process))"
     }
 
 

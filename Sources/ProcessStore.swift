@@ -628,9 +628,9 @@ final class ProcessStore: ObservableObject {
     /// Procesos que pueden seleccionarse manualmente cuando CrossOver oculta el
     /// nombre del .exe detrás de wine64-preloader o ejecuta el juego anidado en
     /// un árbol donde el host real no parece un binario Windows. La selección
-    /// manual es evidencia explícita del usuario: por eso conserva launchers y
-    /// ayudantes relacionados para que puedan elegirse si son el contenedor real,
-    /// mientras la autoaplicación continúa descartándolos salvo confirmación.
+    /// manual muestra el árbol CrossOver completo no protegido: runtime,
+    /// infraestructura Wine, launchers y ayudantes. La autoaplicación continúa
+    /// descartando candidatos ambiguos salvo confirmación explícita.
     var crossOverSelectableProcesses: [ProcessSnapshot] {
         runningCrossOverProcesses.filter(isCrossOverSelectableProcess)
     }
@@ -706,20 +706,11 @@ final class ProcessStore: ObservableObject {
             return true
         }
 
-        if isCrossOverLauncher(process) || isCrossOverHelper(process) {
-            // RC3 protegía la autoactivación excluyendo launchers y helpers.
-            // Para selección manual explícita deben seguir visibles si cuelgan
-            // de CrossOver: algunos juegos quedan anidados en clientes, wrappers
-            // o procesos auxiliares que son el único PID estable controlable.
-            return true
-        }
-
-        // Algunos builds de CrossOver exponen el nombre del ejecutable sin la
-        // extensión o lo recortan en proc_name. Se conserva como respaldo si
-        // pertenece inequívocamente a un árbol de CrossOver.
-        return !isCrossOverInfrastructure(process)
-            && (hasCrossOverRuntimeAncestor(process)
-                || process.path.lowercased().contains("crossover.app"))
+        // El selector manual debe permitir recorrer el árbol CrossOver completo
+        // no protegido, incluso si el nodo parece infraestructura, launcher o
+        // ayudante. La protección contra autoactivar esos nodos vive en
+        // isCrossOverGameCandidate() y bestAutomaticThermalMatch().
+        return true
     }
 
     func crossOverRoleLabel(_ process: ProcessSnapshot) -> String {

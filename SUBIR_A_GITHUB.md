@@ -1,6 +1,6 @@
-# Subir ThermalBridge RC3.7 a GitHub
+# Subir ThermalBridge RC3.8 a GitHub
 
-Este paquete está preparado para usarse como raíz de un repositorio. Conserva las fuentes congeladas de **ThermalBridge 0.7.0 RC3.7 build 34** y los archivos mínimos de colaboración y comprobación para GitHub.
+Este paquete está preparado para usarse como raíz de un repositorio. Conserva las fuentes congeladas de **ThermalBridge 0.7.0 RC3.8 build 35** y los archivos mínimos de colaboración y comprobación para GitHub.
 
 ## Crear el repositorio
 
@@ -12,7 +12,7 @@ Este paquete está preparado para usarse como raíz de un repositorio. Conserva 
 ```bash
 git init -b main
 git add .
-git commit -m "Publicar ThermalBridge 0.7.0 RC3.7 build 34"
+git commit -m "Publicar ThermalBridge 0.7.0 RC3.8 build 35"
 git remote add origin https://github.com/USUARIO/ThermalBridge.git
 git push -u origin main
 ```
@@ -23,7 +23,7 @@ Si Git solicita identidad antes del commit, configura tu nombre y el correo asoc
 
 Al recibir un push o pull request, GitHub Actions verifica:
 
-- los manifiestos SHA-256 de Beta 6 y RC3.7;
+- los manifiestos SHA-256 de Beta 6 y RC3.8;
 - la sintaxis de todos los scripts;
 - los permisos ejecutables;
 - la ausencia en las fuentes de funciones retiradas.

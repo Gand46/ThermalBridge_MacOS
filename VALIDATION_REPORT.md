@@ -1,22 +1,22 @@
-# Informe de auditoría e integración — RC3.7 build 34
+# Informe de auditoría e integración — RC3.8 build 35
 
 Fecha de preparación: 18 de julio de 2026  
-Base inmediata: ThermalBridge 0.7.0 RC3.6 build 33  
+Base inmediata: ThermalBridge 0.7.0 RC3.7 build 34  
 Resultado: prevalidación estática portable aprobada; validación nativa pendiente en Apple Silicon
 
 ## Procedencia e integridad
 
-- La candidata parte del árbol RC3.6 build 33 ya preparado para Fase B.
+- La candidata parte del árbol RC3.7 build 34 de selección manual ampliada.
 - `BASELINE_BETA6_SHA256.txt` continúa validando los cuatro componentes históricos congelados.
-- `RC37_FROZEN_SHA256.txt` cubre fuentes, pruebas, scripts operativos, documentación de release y configuración de bundle de build 34.
+- `RC38_FROZEN_SHA256.txt` cubre fuentes, pruebas, scripts operativos, documentación de release y configuración de bundle de build 35.
 - El cambio no modifica el motor térmico, el limitador, sensores, políticas macOS ni telemetría de sesión.
 
 ## Cambios funcionales de selección CrossOver
 
-- La lista manual conserva procesos relacionados del árbol CrossOver aunque estén clasificados como launcher o ayudante.
-- `Usar selección` puede confirmar un proceso del árbol sin `.exe` como asociación explícita de sesión.
-- Las asociaciones sin `.exe` no arman autoaplicación persistente; al terminar el proceso se desarma la sesión manual.
-- La autoaplicación por `.exe`, la recuperación fuerte y la selección automática siguen descartando launchers y ayudantes ambiguos.
+- El selector manual pasa de mostrar candidatos filtrados a mostrar el árbol CrossOver completo no protegido.
+- Los nodos de infraestructura Wine, launchers y ayudantes quedan visibles para selección explícita cuando cuelgan de CrossOver.
+- Las asociaciones sin `.exe` continúan limitadas a la sesión actual y no arman autoaplicación persistente.
+- La búsqueda automática por `.exe` y la recuperación por botella siguen evitando infraestructura, launchers y ayudantes ambiguos sin confirmación explícita.
 
 ## Límites de esta validación
 
