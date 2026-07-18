@@ -1,23 +1,22 @@
-# Informe de auditoría e integración — RC3.6 build 33
+# Informe de auditoría e integración — RC3.10 build 37
 
 Fecha de preparación: 18 de julio de 2026  
-Base inmediata: ThermalBridge 0.7.0 RC3.5 build 32  
-Resultado: prevalidación estática portable incorporada; validación nativa pendiente en Apple Silicon
+Base inmediata: ThermalBridge 0.7.0 RC3.9 build 36  
+Resultado: prevalidación estática portable aprobada; validación nativa pendiente en Apple Silicon
 
 ## Procedencia e integridad
 
-- La candidata parte del árbol RC3.5 build 32 ya auditado.
+- La candidata parte del árbol RC3.9 build 36 de selector manual amplio.
 - `BASELINE_BETA6_SHA256.txt` continúa validando los cuatro componentes históricos congelados.
-- `RC36_FROZEN_SHA256.txt` cubre fuentes, scripts operativos, documentación de release y configuración de bundle de build 33.
-- El cambio no modifica el motor térmico, el limitador, la selección CrossOver, sensores, políticas macOS ni telemetría de sesión.
+- `RC310_FROZEN_SHA256.txt` cubre fuentes, pruebas, scripts operativos, documentación de release y configuración de bundle de build 37.
+- El cambio no modifica el motor térmico, el limitador, sensores, políticas macOS ni telemetría de sesión.
 
-## Cambios de infraestructura de Fase B
+## Cambios funcionales
 
-- Se añadió `Prevalidar.command`, una prevalidación portable para entornos no macOS.
-- La prevalidación comprueba estructura, versión, manifiestos SHA-256, sintaxis Bash, ausencia de artefactos generados versionados y exclusiones funcionales críticas.
-- Se añadió `.gitignore` para impedir que `.build`, `dist`, `releases`, ZIP generados y `validation_build.log` vuelvan al control de versiones.
-- Se retiraron del índice Git los artefactos generados que estaban versionados.
-- `Validar.command` queda como validación nativa completa obligatoria en Apple Silicon.
+- El selector manual queda filtrado únicamente por nombre de proceso que contenga `.exe`.
+- No se exige que el proceso publique argumentos, ruta CrossOver, botella ni ancestro CrossOver para aparecer en el selector.
+- Tras detectar instalaciones, ThermalBridge intenta abrir CrossOver con el clamp QoS configurado usando la ruta existente de lanzamiento.
+- Si CrossOver ya está abierto o el sistema no soporta clamp de lanzamiento, se informa el estado y no se promete afinidad ni herencia confirmada.
 
 ## Límites de esta validación
 

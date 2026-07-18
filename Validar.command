@@ -100,7 +100,7 @@ printf '[1/10] Verificando estructura limpia e integridad...\n'
 [[ -f "$ROOT_DIR/Tests/DisplayRefreshLogicTests.swift" ]]
 [[ -f "$ROOT_DIR/Tests/IOReportCapabilityProbe.c" ]]
 [[ -f "$ROOT_DIR/BASELINE_BETA6_SHA256.txt" ]]
-[[ -f "$ROOT_DIR/RC36_FROZEN_SHA256.txt" ]]
+[[ -f "$ROOT_DIR/RC310_FROZEN_SHA256.txt" ]]
 [[ -f "$ROOT_DIR/Tests/SensorOutputProbe.swift" ]]
 [[ -f "$ROOT_DIR/Sources/MacMonTemperatureSensor.swift" ]]
 [[ -f "$ROOT_DIR/Sources/TBTemperatureSensor.c" ]]
@@ -123,8 +123,8 @@ grep -q 'GPU máxima' "$ROOT_DIR/Sources/AutomaticThermalView.swift"
 grep -q 'evaluateAutomaticThermalMode' "$ROOT_DIR/Sources/ProcessStore.swift"
 printf '  Verificando hashes y ausencia de la ruta QoS-first rechazada...\n'
 (cd "$ROOT_DIR" && shasum -a 256 -c BASELINE_BETA6_SHA256.txt)
-printf '  Verificando congelación completa de las fuentes RC3.6...\n'
-(cd "$ROOT_DIR" && shasum -a 256 -c RC36_FROZEN_SHA256.txt)
+printf '  Verificando congelación completa de las fuentes RC3.10...\n'
+(cd "$ROOT_DIR" && shasum -a 256 -c RC310_FROZEN_SHA256.txt)
 if grep -REq 'automaticQoSFirstEnabled|qosMaintenanceActive|QoSLaunchSessionMatcher' \
     "$ROOT_DIR/Sources" "$ROOT_DIR/Tests"; then
   echo "ERROR: reapareció lógica QoS-first de Beta 7 en la línea estable."
@@ -472,7 +472,7 @@ grep -q 'IOReportCreateSamplesDelta' "$ROOT_DIR/Sources/ProcessBridge.c"
 grep -q 'IOReportCapabilityProbe: PASS' "$ROOT_DIR/Tests/IOReportCapabilityProbe.c"
 grep -q 'DisplayRefreshLogicTests: OK' "$ROOT_DIR/Tests/DisplayRefreshLogicTests.swift"
 if grep -REq 'GameModeController|gamepolicyctl|game-mode[[:space:]]+set' "$ROOT_DIR/Sources"; then
-  echo "ERROR: reapareció la integración Game Mode retirada en RC3.6."
+  echo "ERROR: reapareció la integración Game Mode retirada en RC3.10."
   exit 1
 fi
 
@@ -555,5 +555,5 @@ PROJECT_ARCHIVE="$("$ROOT_DIR/Empaquetar_Proyecto.command" --no-pause)"
 /usr/bin/unzip -tq "$PROJECT_ARCHIVE" >/dev/null
 printf '  ZIP del proyecto: %s\n' "$PROJECT_ARCHIVE"
 
-printf '\nVALIDACIÓN COMPLETADA: ThermalBridge %s RC3.6 (%s)\n' "$VERSION" "$BUILD"
+printf '\nVALIDACIÓN COMPLETADA: ThermalBridge %s RC3.10 (%s)\n' "$VERSION" "$BUILD"
 printf 'Aplicación validada: %s\n' "$ROOT_DIR/dist/ThermalBridge.app"

@@ -176,14 +176,14 @@ struct AutomaticThermalView: View {
                     }
                 }
 
-                Text("Elegir un proceso no modifica el ejecutable guardado. El cambio solo se confirma con «Usar selección».")
+                Text("Elegir un proceso no modifica el ejecutable guardado. «Usar selección» confirma el .exe si existe o vincula explícitamente el proceso del árbol para esta sesión.")
                     .font(.caption2)
                     .foregroundColor(Color.secondary)
 
                 if let selectedProcessID,
                    let selected = store.process(for: selectedProcessID),
                    selected.windowsExecutableName == nil {
-                    Label("CrossOver no publicó el .exe de este PID. Escríbelo arriba o usa Buscar .exe…, y después pulsa Usar selección.",
+                    Label("Este PID no publicó un .exe. Puedes escribirlo o usar Buscar .exe… para armar la autoaplicación; si pulsas Usar selección sin .exe, se controlará este proceso explícito solo en la sesión actual.",
                           systemImage: "exclamationmark.triangle")
                         .font(.caption)
                         .foregroundColor(Color.orange)
@@ -208,7 +208,7 @@ struct AutomaticThermalView: View {
                     .font(.caption)
                     .foregroundColor(Color.secondary)
                     Spacer()
-                    Text("\(store.automaticThermalResolvedCandidateCount) .exe detectados · \(store.automaticThermalGameCandidates.count) procesos seleccionables")
+                    Text("\(store.automaticThermalResolvedCandidateCount) .exe detectados · \(store.automaticThermalGameCandidates.count) procesos con .exe en el nombre")
                         .font(.caption2.monospacedDigit())
                         .foregroundColor(Color.secondary)
                     Toggle("Aplicar al volver a abrir",
@@ -476,7 +476,7 @@ struct AutomaticThermalView: View {
         if let executable = process.windowsExecutableName {
             return "\(executable)\(bottle) · PID \(process.pid) · CPU \(store.treeCPUText(for: process))"
         }
-        return "Proceso CrossOver sin .exe · \(process.displayName)\(bottle) · PID \(process.pid) · CPU \(store.treeCPUText(for: process))"
+        return "Proceso seleccionable · \(process.displayName)\(bottle) · PID \(process.pid) · CPU \(store.treeCPUText(for: process))"
     }
 
 
