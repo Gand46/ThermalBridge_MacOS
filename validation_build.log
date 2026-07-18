@@ -1,0 +1,110 @@
+
+Herramientas detectadas:
+  Xcode/CLT: /Library/Developer/CommandLineTools
+  SDK:       /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk
+swift-driver version: 1.148.6   Swift:     Apple Swift version 6.3.3 (swiftlang-6.3.3.1.3 clang-2100.1.1.101)
+  Lenguaje:  Swift 5
+  Objetivo:  arm64-apple-macosx14.0
+
+[1/10] Verificando estructura limpia e integridad...
+  Verificando hashes y ausencia de la ruta QoS-first rechazada...
+Sources/ThermalControlLogic.swift: OK
+Sources/TBCPULimiter.c: OK
+Sources/TBWatchdog.c: OK
+Sources/MacProcessPolicy.swift: OK
+  Verificando congelación completa de las fuentes RC3.5...
+Sources/AutomaticThermalSupport.swift: OK
+Sources/AutomaticThermalView.swift: OK
+Sources/CrossOverDiscovery.swift: OK
+Sources/DisplayRefreshLogic.swift: OK
+Sources/MacDisplayIntegration.swift: OK
+Sources/MacMonTemperatureSensor.swift: OK
+Sources/MacProcessPolicy.swift: OK
+Sources/MenuBarView.swift: OK
+Sources/Models.swift: OK
+Sources/ProcessBridge.c: OK
+Sources/ProcessBridge.h: OK
+Sources/ProcessController.swift: OK
+Sources/ProcessObservationCache.swift: OK
+Sources/ProcessResourceMetrics.swift: OK
+Sources/ProcessSampler.swift: OK
+Sources/ProcessStore.swift: OK
+Sources/SessionTelemetry.swift: OK
+Sources/SystemMetricsSampler.swift: OK
+Sources/TBCPULimiter.c: OK
+Sources/TBDisplayGuardian.swift: OK
+Sources/TBLimiterGuardian.c: OK
+Sources/TBTemperatureSensor.c: OK
+Sources/TBWatchdog.c: OK
+Sources/ThermalBridgeApp.swift: OK
+Sources/ThermalControlLogic.swift: OK
+[2/10] Comprobando tipos Swift de la aplicación completa...
+[3/10] Auditando patrones SwiftUI problemáticos...
+[4/10] Ejecutando pruebas de lógica...
+ProfileLogicTests: OK
+ThermalControlTests: OK
+SensorParsingTests: OK
+MacProcessPolicyTests: OK
+CrossOverDetectionTests: OK
+ProcessObservationCacheTests: OK
+ProcessResourceMetricsTests: OK
+SessionTelemetryTests: OK
+DisplayRefreshLogicTests: OK
+[5/10] Analizando fuentes C, Info.plist y scripts...
+  Ejecutando analizador estático sobre la carga dinámica IOHID...
+  Probando Darwin Background, clamp QoS y tiers opcionales...
+MacPolicyProbe: PASS Darwin Background nativo y restauración
+MacPolicyProbe: PASS clamp QoS y lanzamiento de proceso
+MacPolicyProbe: SKIP /usr/bin/taskpolicy no está disponible; los tiers son opcionales
+MacPolicyProbe: resumen DarwinBG=sí, LaunchQoS=sí, degraded=0, skipped=1, failures=0
+  PASS: políticas macOS disponibles o capacidades ausentes marcadas SKIP.
+  Probando versión rusage y contadores efectivos...
+ProcessResourceProbe: PASS rusage V6
+  Probando disponibilidad IOReport sin crear suscripción...
+IOReportCapabilityProbe: PASS símbolos requeridos detectados; sin suscripción
+/Users/germanandresgomezafricano/Documents/GitHub/ThermalBridge_MacOS/Resources/Info.plist: OK
+[6/10] Verificando integración del sensor máximo...
+[7/10] Verificando limitador, potencia predictiva y controles nativos...
+[8/10] Compilando la aplicación completa...
+[1/9] Compilando puente de procesos...
+[2/9] Compilando watchdog de suspensión...
+[3/9] Compilando controlador de actividad por árbol...
+[4/9] Compilando guardián independiente del limitador...
+[5/9] Compilando guardián independiente de pantalla...
+[6/9] Compilando sensor térmico máximo por SMC...
+[7/9] Compilando control térmico automático para CrossOver...
+[8/9] Creando paquete .app...
+[9/9] Firmando localmente...
+/Users/germanandresgomezafricano/Documents/GitHub/ThermalBridge_MacOS/dist/ThermalBridge.app: replacing existing signature
+
+Compilación completada:
+/Users/germanandresgomezafricano/Documents/GitHub/ThermalBridge_MacOS/dist/ThermalBridge.app
+
+Para abrirla:
+  open "/Users/germanandresgomezafricano/Documents/GitHub/ThermalBridge_MacOS/dist/ThermalBridge.app"
+
+La primera apertura puede requerir clic derecho > Abrir porque la firma es local.
+  Probando temporización de audio protegido...
+TBCPULimiter audio-safe self-test: OK
+  Probando identidad del guardián del limitador...
+TBLimiterGuardian resume self-test: OK
+  Probando selección del modo original del guardián de pantalla...
+TBDisplayGuardian: SELF-TEST OK
+[9/10] Verificando versión, binarios, recursos y firma...
+  arm64 + firma OK: ThermalBridge
+  arm64 + firma OK: TBWatchdog
+  arm64 + firma OK: TBCPULimiter
+  arm64 + firma OK: TBLimiterGuardian
+  arm64 + firma OK: TBDisplayGuardian
+  arm64 + firma OK: TBTemperatureSensor
+[10/10] Probando clasificación MacThermal y lectura máxima real...
+TBTemperatureSensor classification self-test: OK (TCMb=CPU, TCGC=GPU, ACC/HID=OK)
+  TCMb incluido correctamente en CPU.
+  sensores detectados: SMC CPU=30 GPU=23; IOHID CPU=0 GPU=0
+SensorOutputProbe: OK (CPU max=62.016, GPU max=45.578, sensores=30+23)
+  Muestra SMC validada: {"timestamp_epoch":1784384023.741465,"cpu_temp_max":62.016,"gpu_temp_max":45.578,"cpu_temp_avg":45.860,"gpu_temp_avg":45.468,"cpu_max_sensor":"TCMb","gpu_max_sensor":"Tg0U","cpu_sensor_count":30,"gpu_sensor_count":23,"iohid_available":true}
+  Empaquetando el proyecto fuente validado...
+  ZIP del proyecto: /Users/germanandresgomezafricano/Documents/GitHub/ThermalBridge_MacOS/releases/ThermalBridge_v0.7.0-RC3.5-build32-project.zip
+
+VALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.5 (32)
+Aplicación validada: /Users/germanandresgomezafricano/Documents/GitHub/ThermalBridge_MacOS/dist/ThermalBridge.app
