@@ -1,10 +1,10 @@
-# ThermalBridge Auto 0.7.0 RC3.9
+# ThermalBridge Auto 0.7.0 RC3.10
 
 Candidata intermedia de estabilización ARM64 para controlar térmicamente juegos de CrossOver en Apple Silicon. No modifica Wine, D3DMetal, DXVK, botellas ni archivos del juego.
 
-## Alcance de RC3.9
+## Alcance de RC3.10
 
-RC3.9 build 36 parte de RC3.8 build 35 y retira del selector manual el requisito de detectar `.exe` o evidencia CrossOver. La lista permite escoger cualquier proceso no protegido, incluyendo el PID que el usuario vea en Monitor de Actividad; los procesos con evidencia CrossOver se ordenan primero y la autoaplicación persistente sigue requiriendo un `.exe` válido. No cambia el motor térmico, el limitador, sensores, políticas macOS ni los valores predeterminados.
+RC3.10 build 37 parte de RC3.9 build 36 y ajusta el selector manual al pedido actual: el único filtro visible es que el nombre publicado del proceso contenga `.exe`; no se exige evidencia CrossOver, argv reconocible ni botella. Además, al iniciar ThermalBridge se intenta abrir CrossOver después de detectar sus instalaciones usando el clamp QoS configurado. No cambia el motor térmico, el limitador, sensores, políticas macOS ni los valores predeterminados térmicos.
 
 Permanecen sin cambios:
 
@@ -16,13 +16,18 @@ Permanecen sin cambios:
 - rusage, energía, evidencia QoS y telemetría JSONL;
 - guardianes de suspensión, limitador y pantalla.
 
-## Selector manual sin requisito `.exe`/CrossOver
+## Selector manual filtrado por nombre `.exe`
 
-- Todos los procesos no protegidos quedan visibles para selección manual explícita, incluso si no publican `.exe` ni evidencia CrossOver.
-- Los procesos con evidencia CrossOver se ordenan primero; el resto funciona como fallback cuando el PID solo aparece identificable en Monitor de Actividad.
-- **Usar selección** puede vincular un proceso sin `.exe` como asociación explícita de la sesión actual y controlar sus descendientes.
-- Esa asociación no se rearma automáticamente al reabrir; para autoaplicación persistente sigue siendo necesario escribir o elegir un `.exe` válido.
+- El selector manual muestra procesos no protegidos cuyo nombre publicado o nombre visible contiene `.exe`.
+- No se exige evidencia CrossOver, argv reconocible, ruta de botella ni ancestro Wine para aparecer.
+- **Usar selección** conserva la asociación explícita de sesión; para autoaplicación persistente sigue siendo necesario escribir o elegir un `.exe` válido.
 - La búsqueda automática y la recuperación fuerte continúan evitando procesos ajenos o ambiguos si no hay confirmación explícita del usuario.
+
+## Apertura posterior de CrossOver con QoS
+
+- Después de iniciar ThermalBridge y detectar instalaciones, la app intenta abrir CrossOver con el clamp QoS configurado.
+- Si CrossOver ya está abierto o el sistema no soporta `posix_spawnattr_set_qos_clamp_np`, se informa el estado y no se promete herencia confirmada.
+- La evidencia QoS sigue midiéndose posteriormente con contadores del sistema cuando están disponibles.
 
 ## Infraestructura de Fase B
 
@@ -71,7 +76,7 @@ Permanecen sin cambios:
 
 ## Funciones excluidas
 
-Game Mode permanece retirado. RC3.9 no contiene su controlador ni ejecuta herramientas de Xcode para modificarlo.
+Game Mode permanece retirado. RC3.10 no contiene su controlador ni ejecuta herramientas de Xcode para modificarlo.
 
 También permanecen excluidos:
 
@@ -85,12 +90,12 @@ IOReport continúa únicamente como sonda de disponibilidad por carga dinámica 
 
 ## Congelación de la candidata
 
-RC3.9 incluye dos manifiestos activos:
+RC3.10 incluye dos manifiestos activos:
 
 - `BASELINE_BETA6_SHA256.txt`: protege los componentes térmicos históricos.
-- `RC39_FROZEN_SHA256.txt`: protege fuentes, pruebas, scripts operativos, documentación de release y configuración de bundle de la candidata.
+- `RC310_FROZEN_SHA256.txt`: protege fuentes, pruebas, scripts operativos, documentación de release y configuración de bundle de la candidata.
 
-El manifiesto RC3 anterior no se distribuye porque marca correctamente como distintos los archivos integrados y producía falsos fallos fuera de su candidata original. La procedencia inmediata se documenta en este README y en `CHANGELOG.md`. `Validar.command` y `Prevalidar.command` fallan si cambia la línea Beta 6 o cualquier archivo incluido en `RC39_FROZEN_SHA256.txt`.
+El manifiesto RC3 anterior no se distribuye porque marca correctamente como distintos los archivos integrados y producía falsos fallos fuera de su candidata original. La procedencia inmediata se documenta en este README y en `CHANGELOG.md`. `Validar.command` y `Prevalidar.command` fallan si cambia la línea Beta 6 o cualquier archivo incluido en `RC310_FROZEN_SHA256.txt`.
 
 ## Prevalidación estática portable
 
@@ -103,7 +108,7 @@ Prevalidar.command
 Debe finalizar con:
 
 ```text
-PREVALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.9 (36)
+PREVALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.10 (37)
 ```
 
 Esta comprobación verifica estructura fuente, manifiestos congelados, sintaxis Bash, ausencia de artefactos generados versionados y exclusiones funcionales críticas. No sustituye el build nativo, la firma, los sensores ni las pruebas físicas.
@@ -119,12 +124,12 @@ Validar.command
 Debe finalizar con:
 
 ```text
-VALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.9 (36)
+VALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.10 (37)
 ```
 
 El validador comprueba:
 
-- hashes Beta 6 y RC3.9;
+- hashes Beta 6 y RC3.10;
 - ausencia de Game Mode y QoS-first;
 - typecheck Swift completo;
 - suites de lógica, sensores, CrossOver, energía, QoS y telemetría;
@@ -137,7 +142,7 @@ El validador comprueba:
 - muestra física del sensor;
 - ZIP versionado y verificable del proyecto fuente.
 
-Después ejecuta `PROTOCOLO_ACEPTACION_RC39.md`. El build y las pruebas físicas requieren macOS y una Mac Apple Silicon.
+Después ejecuta `PROTOCOLO_ACEPTACION_RC310.md`. El build y las pruebas físicas requieren macOS y una Mac Apple Silicon.
 
 ## Instalación
 
@@ -154,7 +159,7 @@ La aplicación se instala en `~/Applications/ThermalBridge.app`. La firma es loc
 Cada validación correcta genera automáticamente un ZIP versionado del proyecto fuente en `releases/`. El nombre contiene la versión, la candidata y el build, por ejemplo:
 
 ```text
-ThermalBridge_v0.7.0-RC3.9-build36-project.zip
+ThermalBridge_v0.7.0-RC3.10-build37-project.zip
 ```
 
 El paquete excluye `.build`, `dist`, metadatos locales, el registro transitorio de compilación y ZIP anteriores. También puede generarse manualmente mediante:
@@ -165,7 +170,7 @@ Empaquetar_Proyecto.command
 
 ## Criterio para 0.7.0 final
 
-RC3.9 puede promoverse sin cambios cuando:
+RC3.10 puede promoverse sin cambios cuando:
 
 - compila y firma correctamente en el equipo objetivo;
 - no reproduce la regresión de Beta 7;
@@ -185,9 +190,9 @@ Cualquier cambio de fuente exige una nueva candidata.
 
 ## Versión
 
-- Aplicación: `0.7.0 RC3.9`.
-- Compilación: `36`.
-- Base inmediata: RC3.8 build 35.
+- Aplicación: `0.7.0 RC3.10`.
+- Compilación: `37`.
+- Base inmediata: RC3.9 build 36.
 - Base térmica: Beta 6 build 19.
 - Arquitectura: Apple Silicon ARM64.
 - macOS mínimo: 14.0.

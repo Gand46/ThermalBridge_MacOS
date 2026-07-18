@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0 RC3.10 build 37 — filtro único por nombre .exe y autoapertura QoS
+
+- Parte de RC3.9 build 36 sin modificar el motor térmico, el limitador ni los valores predeterminados térmicos.
+- Cambia el selector manual para que el único filtro visible sea que el nombre publicado del proceso contenga `.exe`; no se exige evidencia CrossOver ni argv reconocible.
+- Conserva la selección manual explícita de sesión y la autoaplicación persistente solo cuando exista objetivo `.exe` válido.
+- Lanza CrossOver después de iniciar ThermalBridge mediante la ruta existente de `posix_spawn` con clamp QoS solicitado, si CrossOver está detectado, cerrado y el sistema soporta la llamada.
+- Mantiene la evidencia QoS como observación posterior; no afirma afinidad ni garantía del planificador más allá de la solicitud de clamp aceptada.
+- Compilación 37.
+
 ## 0.7.0 RC3.9 build 36 — selector manual sin requisito CrossOver/.exe
 
 - Parte de RC3.8 build 35 sin modificar el motor térmico, el limitador ni los valores predeterminados.

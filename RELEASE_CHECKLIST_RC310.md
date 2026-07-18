@@ -1,9 +1,9 @@
-# Release checklist — RC3.9
+# Release checklist — RC3.10
 
 ## Completado en preparación
 
-- [x] Base inmediata RC3.8 build 35.
-- [x] Build incrementado a 36 para selector manual sin requisito `.exe`/CrossOver.
+- [x] Base inmediata RC3.9 build 36.
+- [x] Build incrementado a 37 para filtro único por nombre `.exe` y autoapertura QoS.
 - [x] Instantáneas persistentes para restaurar Darwin Background.
 - [x] Cola FIFO drenada antes de la restauración final.
 - [x] Resolución tolerante a identidades duplicadas y regresión asociada.
@@ -21,17 +21,17 @@
 - [x] Falso negativo de `codesign | grep -q` eliminado.
 - [x] Game Mode ausente de fuentes ejecutables.
 - [x] QoS-first de Beta 7 ausente.
-- [x] Fuentes, pruebas, scripts operativos, documentación de release y configuración incluidos en `RC39_FROZEN_SHA256.txt`.
+- [x] Fuentes, pruebas, scripts operativos, documentación de release y configuración incluidos en `RC310_FROZEN_SHA256.txt`.
 - [x] Validación exige aplicación y helpers ARM64.
 - [x] Validación exige firmas individuales y profunda.
 - [x] Protocolo de aceptación actualizado.
 - [x] Prevalidación estática portable añadida.
 - [x] Artefactos generados retirados del control de versiones y cubiertos por `.gitignore`.
-- [x] Todos los procesos no protegidos visibles para selección manual explícita.
-- [x] Procesos con evidencia CrossOver ordenados primero y procesos sin evidencia disponibles como fallback.
-- [x] Asociación de sesión permitida para procesos sin `.exe`, sin armar autoaplicación persistente.
+- [x] Selector manual filtrado únicamente por nombre de proceso con `.exe`.
+- [x] Apertura posterior de CrossOver usando la ruta de lanzamiento con clamp QoS solicitado.
+- [x] Asociación de sesión conservada sin relajar la autoaplicación persistente.
 
-## Validación nativa pendiente para build 36
+## Validación nativa pendiente para build 37
 
 - [ ] Typecheck con Apple Swift 6.3.3 o posterior compatible.
 - [ ] Suites Swift y sondas C completas.
@@ -52,7 +52,7 @@
 
 ## Bloqueadores de lanzamiento
 
-- Cualquier hash RC3.9 distinto.
+- Cualquier hash RC3.10 distinto.
 - Error de compilación, firma o arquitectura.
 - Reaparición de la caída abrupta de Beta 7.
 - Juego o helper dejado en `SIGSTOP`.

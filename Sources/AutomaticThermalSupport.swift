@@ -353,6 +353,26 @@ extension ProcessStore {
         }
     }
 
+    func launchCrossOverAfterThermalBridgeIfNeeded() {
+        guard !automaticCrossOverLaunchAfterStartupRequested else { return }
+        automaticCrossOverLaunchAfterStartupRequested = true
+        guard let installation = crossOverInstallations.first else {
+            updateCrossOverEfficientLaunchStatus("No se detectó CrossOver para abrirlo con QoS")
+            return
+        }
+        guard crossOverQoSLaunchAvailable else {
+            updateCrossOverEfficientLaunchStatus("El clamp QoS de lanzamiento no está disponible en este macOS")
+            return
+        }
+
+        updateCrossOverEfficientLaunchStatus(
+            "ThermalBridge listo; abriendo CrossOver con QoS \(crossOverLaunchQoSClamp.title)…"
+        )
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+            self?.launchCrossOverWithQoS(installation)
+        }
+    }
+
     func startAutomaticThermalControl(processID: ProcessIdentity?) {
         disablePreviousAutomaticSystems()
         clearAutomaticThermalRequests()

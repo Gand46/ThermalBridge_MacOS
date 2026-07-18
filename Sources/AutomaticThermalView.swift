@@ -208,7 +208,7 @@ struct AutomaticThermalView: View {
                     .font(.caption)
                     .foregroundColor(Color.secondary)
                     Spacer()
-                    Text("\(store.automaticThermalResolvedCandidateCount) .exe detectados · \(store.automaticThermalGameCandidates.count) procesos seleccionables")
+                    Text("\(store.automaticThermalResolvedCandidateCount) .exe detectados · \(store.automaticThermalGameCandidates.count) procesos con .exe en el nombre")
                         .font(.caption2.monospacedDigit())
                         .foregroundColor(Color.secondary)
                     Toggle("Aplicar al volver a abrir",

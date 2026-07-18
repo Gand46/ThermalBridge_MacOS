@@ -187,6 +187,7 @@ final class ProcessStore: ObservableObject {
     )
     private var lastCrossOverQoSRequestAccepted = false
     private var lastCrossOverQoSRequestFailed = false
+    var automaticCrossOverLaunchAfterStartupRequested = false
 
     func updateCrossOverEfficientLaunchStatus(_ status: String) {
         crossOverEfficientLaunchStatus = status
@@ -625,10 +626,9 @@ final class ProcessStore: ObservableObject {
         runningCrossOverProcesses.filter(isCrossOverGameCandidate)
     }
 
-    /// Procesos que pueden seleccionarse manualmente cuando CrossOver oculta el
-    /// nombre del .exe o cuando el árbol no deja evidencia suficiente para ser
-    /// reconocido. La selección manual muestra todos los procesos no protegidos;
-    /// los relacionados con CrossOver se ordenan primero y la autoaplicación
+    /// Procesos que pueden seleccionarse manualmente. Por petición explícita,
+    /// el único filtro visible es que el nombre publicado contenga `.exe`;
+    /// no se exige evidencia CrossOver ni argv reconocible. La autoaplicación
     /// continúa descartando candidatos ambiguos salvo confirmación explícita.
     var crossOverSelectableProcesses: [ProcessSnapshot] {
         processes.filter(isCrossOverSelectableProcess)
@@ -691,7 +691,9 @@ final class ProcessStore: ObservableObject {
     }
 
     func isCrossOverSelectableProcess(_ process: ProcessSnapshot) -> Bool {
-        !isProtected(process)
+        guard !isProtected(process) else { return false }
+        return process.name.lowercased().contains(".exe")
+            || process.displayName.lowercased().contains(".exe")
     }
 
     func crossOverRoleLabel(_ process: ProcessSnapshot) -> String {
@@ -951,6 +953,7 @@ final class ProcessStore: ObservableObject {
                 self.lastCrossOverScanDate = Date()
                 self.isScanningCrossOver = false
                 self.addLog("CrossOver: detectadas \(result.installations.count) instalaciones y \(result.bottles.count) botellas.")
+                self.launchCrossOverAfterThermalBridgeIfNeeded()
             }
         }
     }
