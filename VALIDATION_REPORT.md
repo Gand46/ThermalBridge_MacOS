@@ -1,22 +1,22 @@
-# Informe de auditoría e integración — RC3.10 build 37
+# Informe de auditoría e integración — RC3.11 build 38
 
 Fecha de preparación: 18 de julio de 2026  
-Base inmediata: ThermalBridge 0.7.0 RC3.9 build 36  
+Base inmediata: ThermalBridge 0.7.0 RC3.10 build 37  
 Resultado: prevalidación estática portable aprobada; validación nativa pendiente en Apple Silicon
 
 ## Procedencia e integridad
 
-- La candidata parte del árbol RC3.9 build 36 de selector manual amplio.
+- La candidata parte del árbol RC3.10 build 37 con filtro único por nombre `.exe` y autoapertura QoS.
 - `BASELINE_BETA6_SHA256.txt` continúa validando los cuatro componentes históricos congelados.
-- `RC310_FROZEN_SHA256.txt` cubre fuentes, pruebas, scripts operativos, documentación de release y configuración de bundle de build 37.
+- `RC311_FROZEN_SHA256.txt` cubre fuentes, pruebas, scripts operativos, documentación de release y configuración de bundle de build 38.
 - El cambio no modifica el motor térmico, el limitador, sensores, políticas macOS ni telemetría de sesión.
 
 ## Cambios funcionales
 
-- El selector manual queda filtrado únicamente por nombre de proceso que contenga `.exe`.
-- No se exige que el proceso publique argumentos, ruta CrossOver, botella ni ancestro CrossOver para aparecer en el selector.
-- Tras detectar instalaciones, ThermalBridge intenta abrir CrossOver con el clamp QoS configurado usando la ruta existente de lanzamiento.
-- Si CrossOver ya está abierto o el sistema no soporta clamp de lanzamiento, se informa el estado y no se promete afinidad ni herencia confirmada.
+- Se añade una casilla para preseleccionar automáticamente el proceso `.exe` detectado con mayor uso de CPU.
+- La preselección se recalcula cuando cambia la lista de procesos o cuando se reactiva la casilla.
+- Al desactivar la casilla, la selección manual del usuario se conserva como override.
+- La preferencia se persiste en `UserDefaults` y queda activada por defecto.
 
 ## Límites de esta validación
 

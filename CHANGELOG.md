@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0 RC3.11 build 38 — preselección por CPU del .exe más demandante
+
+- Parte de RC3.10 build 37 sin modificar el motor térmico, el limitador ni los valores predeterminados térmicos.
+- Añade la casilla **Autoaplicar al proceso .exe más demandante** en la sección de juego.
+- Con la casilla activada, la lista desplegable preselecciona el proceso `.exe` detectado con mayor CPU; con la casilla desactivada, conserva el override manual del usuario.
+- Persiste la preferencia en `UserDefaults` y la deja activada por defecto para facilitar el caso de varios `.exe`.
+- Mantiene el filtro único del selector por nombre `.exe` y la autoapertura de CrossOver con clamp QoS solicitado.
+- Compilación 38.
+
 ## 0.7.0 RC3.10 build 37 — filtro único por nombre .exe y autoapertura QoS
 
 - Parte de RC3.9 build 36 sin modificar el motor térmico, el limitador ni los valores predeterminados térmicos.

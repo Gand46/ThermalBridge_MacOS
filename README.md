@@ -1,10 +1,10 @@
-# ThermalBridge Auto 0.7.0 RC3.10
+# ThermalBridge Auto 0.7.0 RC3.11
 
 Candidata intermedia de estabilización ARM64 para controlar térmicamente juegos de CrossOver en Apple Silicon. No modifica Wine, D3DMetal, DXVK, botellas ni archivos del juego.
 
-## Alcance de RC3.10
+## Alcance de RC3.11
 
-RC3.10 build 37 parte de RC3.9 build 36 y ajusta el selector manual al pedido actual: el único filtro visible es que el nombre publicado del proceso contenga `.exe`; no se exige evidencia CrossOver, argv reconocible ni botella. Además, al iniciar ThermalBridge se intenta abrir CrossOver después de detectar sus instalaciones usando el clamp QoS configurado. No cambia el motor térmico, el limitador, sensores, políticas macOS ni los valores predeterminados térmicos.
+RC3.11 build 38 parte de RC3.10 build 37 y añade una casilla para preseleccionar automáticamente el `.exe` detectado con mayor uso de CPU. Cuando la casilla está desactivada, la selección manual de la lista queda como override. Conserva el filtro por nombre `.exe` y la apertura posterior de CrossOver con clamp QoS solicitado. No cambia el motor térmico, el limitador, sensores, políticas macOS ni los valores predeterminados térmicos.
 
 Permanecen sin cambios:
 
@@ -15,6 +15,13 @@ Permanecen sin cambios:
 - Utility inicial y Maintenance explícito;
 - rusage, energía, evidencia QoS y telemetría JSONL;
 - guardianes de suspensión, limitador y pantalla.
+
+## Autoaplicar al `.exe` más demandante
+
+- La casilla **Autoaplicar al proceso .exe más demandante** está activada por defecto.
+- Al estar activada, la lista preselecciona el proceso `.exe` detectado con mayor CPU; si hay empate, usa memoria y CPU del árbol como desempate.
+- Al desactivarla, ThermalBridge conserva la selección manual del usuario en la lista y no la reemplaza al refrescar.
+- La casilla solo cambia la preselección visual; **Usar selección** sigue siendo la confirmación explícita.
 
 ## Selector manual filtrado por nombre `.exe`
 
@@ -76,7 +83,7 @@ Permanecen sin cambios:
 
 ## Funciones excluidas
 
-Game Mode permanece retirado. RC3.10 no contiene su controlador ni ejecuta herramientas de Xcode para modificarlo.
+Game Mode permanece retirado. RC3.11 no contiene su controlador ni ejecuta herramientas de Xcode para modificarlo.
 
 También permanecen excluidos:
 
@@ -90,12 +97,12 @@ IOReport continúa únicamente como sonda de disponibilidad por carga dinámica 
 
 ## Congelación de la candidata
 
-RC3.10 incluye dos manifiestos activos:
+RC3.11 incluye dos manifiestos activos:
 
 - `BASELINE_BETA6_SHA256.txt`: protege los componentes térmicos históricos.
-- `RC310_FROZEN_SHA256.txt`: protege fuentes, pruebas, scripts operativos, documentación de release y configuración de bundle de la candidata.
+- `RC311_FROZEN_SHA256.txt`: protege fuentes, pruebas, scripts operativos, documentación de release y configuración de bundle de la candidata.
 
-El manifiesto RC3 anterior no se distribuye porque marca correctamente como distintos los archivos integrados y producía falsos fallos fuera de su candidata original. La procedencia inmediata se documenta en este README y en `CHANGELOG.md`. `Validar.command` y `Prevalidar.command` fallan si cambia la línea Beta 6 o cualquier archivo incluido en `RC310_FROZEN_SHA256.txt`.
+El manifiesto RC3 anterior no se distribuye porque marca correctamente como distintos los archivos integrados y producía falsos fallos fuera de su candidata original. La procedencia inmediata se documenta en este README y en `CHANGELOG.md`. `Validar.command` y `Prevalidar.command` fallan si cambia la línea Beta 6 o cualquier archivo incluido en `RC311_FROZEN_SHA256.txt`.
 
 ## Prevalidación estática portable
 
@@ -108,7 +115,7 @@ Prevalidar.command
 Debe finalizar con:
 
 ```text
-PREVALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.10 (37)
+PREVALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.11 (38)
 ```
 
 Esta comprobación verifica estructura fuente, manifiestos congelados, sintaxis Bash, ausencia de artefactos generados versionados y exclusiones funcionales críticas. No sustituye el build nativo, la firma, los sensores ni las pruebas físicas.
@@ -124,12 +131,12 @@ Validar.command
 Debe finalizar con:
 
 ```text
-VALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.10 (37)
+VALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.11 (38)
 ```
 
 El validador comprueba:
 
-- hashes Beta 6 y RC3.10;
+- hashes Beta 6 y RC3.11;
 - ausencia de Game Mode y QoS-first;
 - typecheck Swift completo;
 - suites de lógica, sensores, CrossOver, energía, QoS y telemetría;
@@ -142,7 +149,7 @@ El validador comprueba:
 - muestra física del sensor;
 - ZIP versionado y verificable del proyecto fuente.
 
-Después ejecuta `PROTOCOLO_ACEPTACION_RC310.md`. El build y las pruebas físicas requieren macOS y una Mac Apple Silicon.
+Después ejecuta `PROTOCOLO_ACEPTACION_RC311.md`. El build y las pruebas físicas requieren macOS y una Mac Apple Silicon.
 
 ## Instalación
 
@@ -159,7 +166,7 @@ La aplicación se instala en `~/Applications/ThermalBridge.app`. La firma es loc
 Cada validación correcta genera automáticamente un ZIP versionado del proyecto fuente en `releases/`. El nombre contiene la versión, la candidata y el build, por ejemplo:
 
 ```text
-ThermalBridge_v0.7.0-RC3.10-build37-project.zip
+ThermalBridge_v0.7.0-RC3.11-build38-project.zip
 ```
 
 El paquete excluye `.build`, `dist`, metadatos locales, el registro transitorio de compilación y ZIP anteriores. También puede generarse manualmente mediante:
@@ -170,7 +177,7 @@ Empaquetar_Proyecto.command
 
 ## Criterio para 0.7.0 final
 
-RC3.10 puede promoverse sin cambios cuando:
+RC3.11 puede promoverse sin cambios cuando:
 
 - compila y firma correctamente en el equipo objetivo;
 - no reproduce la regresión de Beta 7;
@@ -190,9 +197,9 @@ Cualquier cambio de fuente exige una nueva candidata.
 
 ## Versión
 
-- Aplicación: `0.7.0 RC3.10`.
-- Compilación: `37`.
-- Base inmediata: RC3.9 build 36.
+- Aplicación: `0.7.0 RC3.11`.
+- Compilación: `38`.
+- Base inmediata: RC3.10 build 37.
 - Base térmica: Beta 6 build 19.
 - Arquitectura: Apple Silicon ARM64.
 - macOS mínimo: 14.0.

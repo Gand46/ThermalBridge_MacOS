@@ -27,6 +27,9 @@ struct AutomaticThermalView: View {
         .onChange(of: store.automaticThermalGameCandidates.map(\.identity)) { _, _ in
             selectBestCandidateIfNeeded()
         }
+        .onChange(of: store.automaticSelectHighestCPUExecutableEnabled) { _, enabled in
+            if enabled { selectBestCandidateIfNeeded() }
+        }
     }
 
     private var header: some View {
@@ -179,6 +182,10 @@ struct AutomaticThermalView: View {
                 Text("Elegir un proceso no modifica el ejecutable guardado. «Usar selección» confirma el .exe si existe o vincula explícitamente el proceso del árbol para esta sesión.")
                     .font(.caption2)
                     .foregroundColor(Color.secondary)
+
+                Toggle("Autoaplicar al proceso .exe más demandante",
+                       isOn: $store.automaticSelectHighestCPUExecutableEnabled)
+                    .toggleStyle(.checkbox)
 
                 if let selectedProcessID,
                    let selected = store.process(for: selectedProcessID),
@@ -451,6 +458,24 @@ struct AutomaticThermalView: View {
             selectedProcessID = active
             return
         }
+        if !store.automaticSelectHighestCPUExecutableEnabled,
+           let current = selectedProcessID,
+           store.process(for: current) != nil {
+            return
+        }
+
+        if store.automaticSelectHighestCPUExecutableEnabled,
+           let busiest = store.automaticThermalGameCandidates
+                .filter({ $0.windowsExecutableName != nil })
+                .max(by: { lhs, rhs in
+                    if lhs.cpuPercent != rhs.cpuPercent { return lhs.cpuPercent < rhs.cpuPercent }
+                    if lhs.memoryBytes != rhs.memoryBytes { return lhs.memoryBytes < rhs.memoryBytes }
+                    return store.treeCPUValue(for: lhs) < store.treeCPUValue(for: rhs)
+                }) {
+            selectedProcessID = busiest.identity
+            return
+        }
+
         if let current = selectedProcessID,
            store.process(for: current) != nil {
             return

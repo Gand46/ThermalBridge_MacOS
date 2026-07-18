@@ -158,6 +158,14 @@ final class ProcessStore: ObservableObject {
             evaluateAutomaticThermalMode(force: true)
         }
     }
+    @Published var automaticSelectHighestCPUExecutableEnabled = true {
+        didSet {
+            guard !loadingPersistence,
+                  automaticSelectHighestCPUExecutableEnabled != oldValue else { return }
+            UserDefaults.standard.set(automaticSelectHighestCPUExecutableEnabled,
+                                      forKey: Keys.automaticSelectHighestCPUExecutableEnabled)
+        }
+    }
     @Published var automaticGPURefreshReductionEnabled = false {
         didSet {
             guard !loadingPersistence,
@@ -368,6 +376,7 @@ final class ProcessStore: ObservableObject {
         static let automaticPowerAnticipationEnabled = "ThermalBridge.automaticPowerAnticipationEnabled.beta4"
         static let automaticAudioProtectionEnabled = "ThermalBridge.automaticAudioProtection.beta6"
         static let automaticEmergencyBackgroundEnabled = "ThermalBridge.automaticEmergencyBackgroundEnabled.beta4"
+        static let automaticSelectHighestCPUExecutableEnabled = "ThermalBridge.automaticSelectHighestCPUExecutableEnabled.rc311"
         static let automaticGPURefreshReductionEnabled = "ThermalBridge.automaticGPURefreshReductionEnabled.beta10"
         static let crossOverLaunchQoSClamp = "ThermalBridge.crossOverLaunchQoSClamp.beta4"
         static let gpuGuardTarget = "ThermalBridge.gpuGuardTarget.v1"
@@ -1410,6 +1419,13 @@ final class ProcessStore: ObservableObject {
             automaticEmergencyBackgroundEnabled = UserDefaults.standard.bool(forKey: Keys.automaticEmergencyBackgroundEnabled)
         } else {
             automaticEmergencyBackgroundEnabled = false
+        }
+        if UserDefaults.standard.object(forKey: Keys.automaticSelectHighestCPUExecutableEnabled) != nil {
+            automaticSelectHighestCPUExecutableEnabled = UserDefaults.standard.bool(
+                forKey: Keys.automaticSelectHighestCPUExecutableEnabled
+            )
+        } else {
+            automaticSelectHighestCPUExecutableEnabled = true
         }
         // RC3.5 conserva retirada la integración experimental de Game
         // Mode y limpia la preferencia que podía quedar guardada por Beta 10.
