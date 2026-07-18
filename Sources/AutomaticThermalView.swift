@@ -176,14 +176,14 @@ struct AutomaticThermalView: View {
                     }
                 }
 
-                Text("Elegir un proceso no modifica el ejecutable guardado. El cambio solo se confirma con «Usar selección».")
+                Text("Elegir un proceso no modifica el ejecutable guardado. «Usar selección» confirma el .exe si existe o vincula explícitamente el proceso del árbol para esta sesión.")
                     .font(.caption2)
                     .foregroundColor(Color.secondary)
 
                 if let selectedProcessID,
                    let selected = store.process(for: selectedProcessID),
                    selected.windowsExecutableName == nil {
-                    Label("CrossOver no publicó el .exe de este PID. Escríbelo arriba o usa Buscar .exe…, y después pulsa Usar selección.",
+                    Label("CrossOver no publicó el .exe de este PID. Puedes escribirlo o usar Buscar .exe… para armar la autoaplicación; si pulsas Usar selección sin .exe, se controlará este proceso del árbol solo en la sesión actual.",
                           systemImage: "exclamationmark.triangle")
                         .font(.caption)
                         .foregroundColor(Color.orange)
@@ -208,7 +208,7 @@ struct AutomaticThermalView: View {
                     .font(.caption)
                     .foregroundColor(Color.secondary)
                     Spacer()
-                    Text("\(store.automaticThermalResolvedCandidateCount) .exe detectados · \(store.automaticThermalGameCandidates.count) procesos seleccionables")
+                    Text("\(store.automaticThermalResolvedCandidateCount) .exe detectados · \(store.automaticThermalGameCandidates.count) procesos del árbol seleccionables")
                         .font(.caption2.monospacedDigit())
                         .foregroundColor(Color.secondary)
                     Toggle("Aplicar al volver a abrir",

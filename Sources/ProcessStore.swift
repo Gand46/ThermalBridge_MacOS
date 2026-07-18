@@ -626,9 +626,11 @@ final class ProcessStore: ObservableObject {
     }
 
     /// Procesos que pueden seleccionarse manualmente cuando CrossOver oculta el
-    /// nombre del .exe detrás de wine64-preloader. Los candidatos resueltos se
-    /// muestran primero; los hosts sin .exe quedan como respaldo para asociar un
-    /// ejecutable escrito manualmente.
+    /// nombre del .exe detrás de wine64-preloader o ejecuta el juego anidado en
+    /// un árbol donde el host real no parece un binario Windows. La selección
+    /// manual es evidencia explícita del usuario: por eso conserva launchers y
+    /// ayudantes relacionados para que puedan elegirse si son el contenedor real,
+    /// mientras la autoaplicación continúa descartándolos salvo confirmación.
     var crossOverSelectableProcesses: [ProcessSnapshot] {
         runningCrossOverProcesses.filter(isCrossOverSelectableProcess)
     }
@@ -692,7 +694,6 @@ final class ProcessStore: ObservableObject {
     func isCrossOverSelectableProcess(_ process: ProcessSnapshot) -> Bool {
         guard isCrossOverRelated(process), !isProtected(process) else { return false }
         if isCrossOverGameCandidate(process) { return true }
-        if isCrossOverLauncher(process) || isCrossOverHelper(process) { return false }
 
         let lower = process.name.lowercased()
         let runtimeHosts: Set<String> = [
@@ -702,6 +703,14 @@ final class ProcessStore: ObservableObject {
             // CrossOver puede ocultar por completo argv del ejecutable Windows.
             // El host Wine sigue siendo seleccionable manualmente aunque en esta
             // muestra esté al 0 % de CPU o no contenga «.exe» en el comando.
+            return true
+        }
+
+        if isCrossOverLauncher(process) || isCrossOverHelper(process) {
+            // RC3 protegía la autoactivación excluyendo launchers y helpers.
+            // Para selección manual explícita deben seguir visibles si cuelgan
+            // de CrossOver: algunos juegos quedan anidados en clientes, wrappers
+            // o procesos auxiliares que son el único PID estable controlable.
             return true
         }
 

@@ -1,8 +1,8 @@
-# Protocolo de aceptación — ThermalBridge 0.7.0 RC3.5
+# Protocolo de aceptación — ThermalBridge 0.7.0 RC3.7
 
 ## Regla de la candidata
 
-RC3.5 es una versión congelada. Si se modifica cualquier fuente después de iniciar este protocolo, el resultado deja de pertenecer a RC3.5 y debe publicarse como una nueva candidata o volver a beta.
+RC3.7 es una versión congelada. Si se modifica cualquier fuente después de iniciar este protocolo, el resultado deja de pertenecer a RC3.7 y debe publicarse como una nueva candidata o volver a beta.
 
 ## 1. Validación nativa obligatoria
 
@@ -13,7 +13,7 @@ RC3.5 es una versión congelada. Si se modifica cualquier fuente después de ini
 5. Exige como última línea de resultado:
 
 ```text
-VALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.5 (32)
+VALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.7 (34)
 ```
 
 La candidata queda bloqueada si falla un hash, typecheck, prueba, helper, arquitectura, firma o muestra térmica.
@@ -22,14 +22,23 @@ La candidata queda bloqueada si falla un hash, typecheck, prueba, helper, arquit
 
 1. Detén el control de la versión instalada.
 2. Cierra ThermalBridge normalmente.
-3. Ejecuta `Instalar_en_Aplicaciones.command` desde RC3.5.
+3. Ejecuta `Instalar_en_Aplicaciones.command` desde RC3.7.
 4. Abre `~/Applications/ThermalBridge.app`.
 5. Confirma que se conservan el juego objetivo, botella, perfil, objetivos térmicos y toggles compatibles.
 6. Confirma que Game Mode no aparece como opción activa.
 
 No elimines preferencias antes de esta prueba: la migración forma parte de la aceptación.
 
-## 3. Selección de un juego con `.exe` oculto
+## 3. Selección de proceso anidado sin `.exe`
+
+1. Abre un juego o launcher que cree procesos anidados dentro de CrossOver.
+2. Pulsa **Actualizar** y confirma que aparecen procesos relacionados del árbol aunque estén clasificados como launcher o ayudante.
+3. Selecciona el proceso estable que corresponda al contenedor real del juego y pulsa **Usar selección**.
+4. Sin escribir `.exe`, inicia el control y confirma que se controla esa sesión y sus descendientes.
+5. Cierra el proceso seleccionado y confirma que ThermalBridge desarma la sesión manual sin rearmar autoaplicación persistente.
+6. Repite con el `.exe` escrito o elegido mediante **Buscar .exe…** y confirma que la autoaplicación queda armada solo entonces.
+
+## 4. Selección de un juego con `.exe` oculto
 
 1. Abre el juego que RC2 no mostraba.
 2. Pulsa **Actualizar** y verifica que aparece al menos un `Proceso CrossOver sin .exe` asociado al árbol correcto.
@@ -40,7 +49,7 @@ No elimines preferencias antes de esta prueba: la migración forma parte de la a
 
 No se debe seleccionar automáticamente un helper ambiguo. Si aparecen varios hosts neutros, usa CPU, PID y árbol del diagnóstico para confirmar el principal.
 
-## 4. Sesión de referencia Utility
+## 5. Sesión de referencia Utility
 
 Usa el mismo juego, botella, escena, resolución y límites empleados para aprobar Beta 11.
 
@@ -52,7 +61,7 @@ Usa el mismo juego, botella, escena, resolución y límites empleados para aprob
 
 Criterio: no debe aparecer una caída abrupta nueva ni quedar un proceso suspendido.
 
-## 5. Sesión Maintenance explícita
+## 6. Sesión Maintenance explícita
 
 Solo si Maintenance forma parte de tu uso previsto:
 
@@ -95,7 +104,7 @@ Debe contener decisiones, energía/QoS cuando estén disponibles y eventos de se
 
 ## 9. Periodo de observación
 
-Mantén RC3.5 instalada durante al menos tres sesiones reales adicionales o 24 horas de uso normal, lo que ocurra después. Registra:
+Mantén RC3.7 instalada durante al menos tres sesiones reales adicionales o 24 horas de uso normal, lo que ocurra después. Registra:
 
 - cierres inesperados;
 - procesos que no se reanudan;

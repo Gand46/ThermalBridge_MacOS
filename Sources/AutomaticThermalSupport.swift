@@ -246,10 +246,13 @@ extension ProcessStore {
             configuration.executableContains = executable
         } else {
             configuration.bottleName = process.crossOverBottleName ?? configuration.bottleName
+            automaticThermalPreferredProcessID = process.identity
+            automaticThermalPreferredExecutableNeedle = nil
+            automaticThermalSessionIDs.formUnion(automaticSessionIdentities(around: process))
             automaticThermalConfiguration = configuration
-            automaticThermalStatus = "Proceso seleccionado; escribe el nombre exacto del .exe"
-            automaticThermalReason = "CrossOver no publicó el ejecutable en los argumentos del proceso"
-            addLog("CrossOver: PID \(process.pid) seleccionado sin nombre .exe; se requiere entrada manual.", isError: true)
+            automaticThermalStatus = "Proceso del árbol seleccionado: \(process.displayName)"
+            automaticThermalReason = "Selección manual explícita sin .exe; se controla esta sesión y sus descendientes"
+            addLog("CrossOver: PID \(process.pid) seleccionado sin nombre .exe; asociación limitada a la sesión.")
             return
         }
 
@@ -346,9 +349,11 @@ extension ProcessStore {
         disablePreviousAutomaticSystems()
         clearAutomaticThermalRequests()
 
-        guard automaticThermalConfiguration.hasTarget else {
-            automaticThermalStatus = "Selecciona y guarda primero el ejecutable del juego"
-            addLog("Modo térmico: falta seleccionar un juego.", isError: true)
+        guard automaticThermalConfiguration.hasTarget
+                || processID != nil
+                || automaticThermalPreferredProcessID != nil else {
+            automaticThermalStatus = "Selecciona un proceso del árbol CrossOver o guarda el .exe"
+            addLog("Modo térmico: falta seleccionar un proceso o un juego.", isError: true)
             return
         }
 
@@ -361,7 +366,8 @@ extension ProcessStore {
         if let processID,
            let process = process(for: processID),
            isCrossOverSelectableProcess(process),
-           (automaticThermalConfiguration.matchScore(for: process) != nil
+           (!automaticThermalConfiguration.hasTarget
+                || automaticThermalConfiguration.matchScore(for: process) != nil
                 || (preferredTargetIsCurrent
                     && automaticThermalPreferredProcessID == process.identity)) {
             selected = process
@@ -476,6 +482,14 @@ extension ProcessStore {
             return
         }
 
+        guard automaticThermalConfiguration.hasTarget else {
+            automaticThermalEnabled = false
+            sessionTelemetryWriter.stop(reason: "manual_tree_session_ended")
+            automaticThermalStatus = "El proceso seleccionado terminó"
+            automaticThermalReason = "La selección por árbol sin .exe no se rearma automáticamente"
+            return
+        }
+
         guard let match = bestAutomaticThermalMatch() else {
             automaticThermalStatus = "Armado; esperando \(automaticThermalConfiguration.executableContains)"
             automaticThermalReason = "Esperando evidencia estable del .exe o de su botella"
@@ -582,7 +596,9 @@ extension ProcessStore {
         automaticLimiterPulseMode = automaticAudioProtectionEnabled ? .audioSafe : .burst
         lastAutomaticThermalEvaluation = .distantPast
         lastAutomaticThermalDecisionReadingDate = nil
-        let targetName = automaticThermalConfiguration.executableContains
+        let targetName = automaticThermalConfiguration.hasTarget
+            ? automaticThermalConfiguration.executableContains
+            : root.displayName
         automaticThermalStatus = "Controlando \(targetName) mediante \(root.displayName)\(automatic ? " automáticamente" : "")"
         automaticThermalReason = "Esperando la primera decisión térmica"
         addLog("Modo térmico: control aplicado a \(root.displayName)\(automatic ? " automáticamente" : "").")
@@ -1027,11 +1043,12 @@ extension ProcessStore {
     }
 
     private func preferredAutomaticThermalProcess() -> ProcessSnapshot? {
-        guard automaticThermalPreferredExecutableNeedle
-                == automaticThermalConfiguration.normalizedExecutableNeedle,
-              let identity = automaticThermalPreferredProcessID,
+        guard let identity = automaticThermalPreferredProcessID,
               let process = process(for: identity),
               isCrossOverSelectableProcess(process) else { return nil }
+        guard automaticThermalConfiguration.hasTarget else { return process }
+        guard automaticThermalPreferredExecutableNeedle
+                == automaticThermalConfiguration.normalizedExecutableNeedle else { return nil }
         return process
     }
 

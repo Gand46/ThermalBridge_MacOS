@@ -141,6 +141,19 @@ private enum CrossOverDetectionTests {
         precondition(topology.hasCrossOverRuntimeAncestor(of: hiddenGameHost))
         precondition(!topology.hasCrossOverRuntimeAncestor(of: unrelatedHost))
 
+        let nestedLauncherHost = makeSnapshot(
+            pid: 523,
+            parentPID: 521,
+            name: "LauncherHelper",
+            path: "/private/tmp/LauncherHelper",
+            command: ""
+        )
+        let nestedHelperTopology = ProcessTopologyIndex(
+            processes: [runtimeRoot, hiddenGameHost, nestedLauncherHost]
+        )
+        precondition(!nestedLauncherHost.hasDirectCrossOverRuntimeEvidence)
+        precondition(nestedHelperTopology.hasCrossOverRuntimeAncestor(of: nestedLauncherHost))
+
         print("CrossOverDetectionTests: OK")
     }
 }
