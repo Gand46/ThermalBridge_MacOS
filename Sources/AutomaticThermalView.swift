@@ -27,6 +27,9 @@ struct AutomaticThermalView: View {
         .onChange(of: store.automaticThermalGameCandidates.map(\.identity)) { _, _ in
             selectBestCandidateIfNeeded()
         }
+        .onChange(of: store.automaticSelectHighestCPUExecutableEnabled) { _, enabled in
+            if enabled { selectBestCandidateIfNeeded() }
+        }
     }
 
     private var header: some View {
@@ -176,14 +179,18 @@ struct AutomaticThermalView: View {
                     }
                 }
 
-                Text("Elegir un proceso no modifica el ejecutable guardado. El cambio solo se confirma con «Usar selección».")
+                Text("Elegir un proceso no modifica el ejecutable guardado. «Usar selección» confirma el .exe si existe o vincula explícitamente el proceso del árbol para esta sesión.")
                     .font(.caption2)
                     .foregroundColor(Color.secondary)
+
+                Toggle("Autoaplicar al proceso .exe más demandante",
+                       isOn: $store.automaticSelectHighestCPUExecutableEnabled)
+                    .toggleStyle(.checkbox)
 
                 if let selectedProcessID,
                    let selected = store.process(for: selectedProcessID),
                    selected.windowsExecutableName == nil {
-                    Label("CrossOver no publicó el .exe de este PID. Escríbelo arriba o usa Buscar .exe…, y después pulsa Usar selección.",
+                    Label("Este PID no publicó un .exe. Puedes escribirlo o usar Buscar .exe… para armar la autoaplicación; si pulsas Usar selección sin .exe, se controlará este proceso explícito solo en la sesión actual.",
                           systemImage: "exclamationmark.triangle")
                         .font(.caption)
                         .foregroundColor(Color.orange)
@@ -208,7 +215,7 @@ struct AutomaticThermalView: View {
                     .font(.caption)
                     .foregroundColor(Color.secondary)
                     Spacer()
-                    Text("\(store.automaticThermalResolvedCandidateCount) .exe detectados · \(store.automaticThermalGameCandidates.count) procesos seleccionables")
+                    Text("\(store.automaticThermalResolvedCandidateCount) .exe detectados · \(store.automaticThermalGameCandidates.count) procesos con .exe en el nombre")
                         .font(.caption2.monospacedDigit())
                         .foregroundColor(Color.secondary)
                     Toggle("Aplicar al volver a abrir",
@@ -451,6 +458,24 @@ struct AutomaticThermalView: View {
             selectedProcessID = active
             return
         }
+        if !store.automaticSelectHighestCPUExecutableEnabled,
+           let current = selectedProcessID,
+           store.process(for: current) != nil {
+            return
+        }
+
+        if store.automaticSelectHighestCPUExecutableEnabled,
+           let busiest = store.automaticThermalGameCandidates
+                .filter({ $0.windowsExecutableName != nil })
+                .max(by: { lhs, rhs in
+                    if lhs.cpuPercent != rhs.cpuPercent { return lhs.cpuPercent < rhs.cpuPercent }
+                    if lhs.memoryBytes != rhs.memoryBytes { return lhs.memoryBytes < rhs.memoryBytes }
+                    return store.treeCPUValue(for: lhs) < store.treeCPUValue(for: rhs)
+                }) {
+            selectedProcessID = busiest.identity
+            return
+        }
+
         if let current = selectedProcessID,
            store.process(for: current) != nil {
             return
@@ -476,7 +501,7 @@ struct AutomaticThermalView: View {
         if let executable = process.windowsExecutableName {
             return "\(executable)\(bottle) · PID \(process.pid) · CPU \(store.treeCPUText(for: process))"
         }
-        return "Proceso CrossOver sin .exe · \(process.displayName)\(bottle) · PID \(process.pid) · CPU \(store.treeCPUText(for: process))"
+        return "Proceso seleccionable · \(process.displayName)\(bottle) · PID \(process.pid) · CPU \(store.treeCPUText(for: process))"
     }
 
 

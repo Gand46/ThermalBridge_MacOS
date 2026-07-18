@@ -1,0 +1,14 @@
+# Artefactos de compilación y validación local
+.build/
+dist/
+releases/
+validation_build.log
+
+# Metadatos locales de macOS y herramientas
+.DS_Store
+._*
+.agents/
+.codex/
+
+# Paquetes generados
+*.zip
