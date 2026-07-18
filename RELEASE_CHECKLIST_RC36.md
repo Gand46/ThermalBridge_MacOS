@@ -1,9 +1,9 @@
-# Release checklist — RC3.5
+# Release checklist — RC3.6
 
 ## Completado en preparación
 
-- [x] Base inmediata RC3 build 30.
-- [x] Build incrementado a 32 tras la integración auditada.
+- [x] Base inmediata RC3.5 build 32.
+- [x] Build incrementado a 33 para los cambios de infraestructura de Fase B.
 - [x] Instantáneas persistentes para restaurar Darwin Background.
 - [x] Cola FIFO drenada antes de la restauración final.
 - [x] Resolución tolerante a identidades duplicadas y regresión asociada.
@@ -21,12 +21,14 @@
 - [x] Falso negativo de `codesign | grep -q` eliminado.
 - [x] Game Mode ausente de fuentes ejecutables.
 - [x] QoS-first de Beta 7 ausente.
-- [x] Todas las fuentes incluidas en `RC35_FROZEN_SHA256.txt`.
+- [x] Fuentes, scripts operativos, documentación de release y configuración incluidos en `RC36_FROZEN_SHA256.txt`.
 - [x] Validación exige aplicación y helpers ARM64.
 - [x] Validación exige firmas individuales y profunda.
-- [x] Protocolo de aceptación creado.
+- [x] Protocolo de aceptación actualizado.
+- [x] Prevalidación estática portable añadida.
+- [x] Artefactos generados retirados del control de versiones y cubiertos por `.gitignore`.
 
-## Validación nativa pendiente para build 32
+## Validación nativa pendiente para build 33
 
 - [ ] Typecheck con Apple Swift 6.3.3 o posterior compatible.
 - [ ] Suites Swift y sondas C completas.
@@ -47,7 +49,7 @@
 
 ## Bloqueadores de lanzamiento
 
-- Cualquier hash RC3.5 distinto.
+- Cualquier hash RC3.6 distinto.
 - Error de compilación, firma o arquitectura.
 - Reaparición de la caída abrupta de Beta 7.
 - Juego o helper dejado en `SIGSTOP`.

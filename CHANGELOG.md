@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0 RC3.6 build 33 — prevalidación portable y limpieza de artefactos
+
+- Parte de RC3.5 build 32 sin modificar el motor térmico, el limitador, la selección CrossOver ni los defaults de usuario.
+- Añade `Prevalidar.command` para ejecutar comprobaciones estáticas portables antes de la validación nativa en Apple Silicon.
+- Separa explícitamente prevalidación de build/firma/sensores/pruebas físicas para evitar declarar como nativo un resultado de contenedor.
+- Añade `.gitignore` y retira del control de versiones `.build`, `dist`, `releases`, ZIP generados y `validation_build.log`.
+- Sustituye el manifiesto congelado por `RC36_FROZEN_SHA256.txt`, incluyendo fuentes, scripts operativos, documentación de release y configuración de bundle.
+- Compilación 33.
+
 ## 0.7.0 RC3.5 build 32 — integración auditada y paquete limpio
 
 - Parte de RC3 build 30 sin modificar objetivos, histéresis, integral, recuperación ni porcentajes del motor térmico.
