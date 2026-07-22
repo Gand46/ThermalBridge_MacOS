@@ -45,6 +45,7 @@ COMMON_C_FLAGS=(
 SWIFT_SOURCES=(
   "$ROOT_DIR/Sources/Models.swift"
   "$ROOT_DIR/Sources/ThermalControlLogic.swift"
+  "$ROOT_DIR/Sources/B1PredictiveThermalGovernor.swift"
   "$ROOT_DIR/Sources/MacProcessPolicy.swift"
   "$ROOT_DIR/Sources/MacMonTemperatureSensor.swift"
   "$ROOT_DIR/Sources/ProcessObservationCache.swift"

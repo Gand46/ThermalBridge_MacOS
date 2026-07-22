@@ -62,6 +62,29 @@ struct SessionTelemetryEvent: Codable, Equatable {
     let observedRequestedQoSCPUTimeNS: UInt64?
     let safetyOperation: String?
     let safetyStatus: String?
+    let cpuFilteredCelsius: Double?
+    let gpuFilteredCelsius: Double?
+    let cpuPredictedCelsius: Double?
+    let gpuPredictedCelsius: Double?
+    let cpuSlopeCelsiusPerSecond: Double?
+    let gpuSlopeCelsiusPerSecond: Double?
+    let sensorAgeSeconds: Double?
+    let sensorQuality: String?
+    let controlLevelRequested: Double?
+    let controlLevelApplied: Double?
+    let governorState: String?
+    let actuator: String?
+    let actuatorResult: String?
+    let transitionReason: String?
+    let ephemeralProcessStartID: UInt64?
+    let frameTimeP50MS: Double?
+    let frameTimeP95MS: Double?
+    let frameTimeP99MS: Double?
+    let onePercentLowFPS: Double?
+    let frameTimeOver50MSPerMinute: Double?
+    let frameTimeOver100MSPerMinute: Double?
+    let suspensionCount: Int?
+    let suspensionDurationSeconds: Double?
 
     init(sessionID: UUID,
          kind: Kind,
@@ -98,7 +121,30 @@ struct SessionTelemetryEvent: Codable, Equatable {
          dominantQoSClass: String? = nil,
          observedRequestedQoSCPUTimeNS: UInt64? = nil,
          safetyOperation: String? = nil,
-         safetyStatus: String? = nil) {
+         safetyStatus: String? = nil,
+         cpuFilteredCelsius: Double? = nil,
+         gpuFilteredCelsius: Double? = nil,
+         cpuPredictedCelsius: Double? = nil,
+         gpuPredictedCelsius: Double? = nil,
+         cpuSlopeCelsiusPerSecond: Double? = nil,
+         gpuSlopeCelsiusPerSecond: Double? = nil,
+         sensorAgeSeconds: Double? = nil,
+         sensorQuality: String? = nil,
+         controlLevelRequested: Double? = nil,
+         controlLevelApplied: Double? = nil,
+         governorState: String? = nil,
+         actuator: String? = nil,
+         actuatorResult: String? = nil,
+         transitionReason: String? = nil,
+         ephemeralProcessStartID: UInt64? = nil,
+         frameTimeP50MS: Double? = nil,
+         frameTimeP95MS: Double? = nil,
+         frameTimeP99MS: Double? = nil,
+         onePercentLowFPS: Double? = nil,
+         frameTimeOver50MSPerMinute: Double? = nil,
+         frameTimeOver100MSPerMinute: Double? = nil,
+         suspensionCount: Int? = nil,
+         suspensionDurationSeconds: Double? = nil) {
         self.schemaVersion = Self.currentSchemaVersion
         self.sessionID = sessionID
         self.kind = kind
@@ -136,6 +182,29 @@ struct SessionTelemetryEvent: Codable, Equatable {
         self.observedRequestedQoSCPUTimeNS = observedRequestedQoSCPUTimeNS
         self.safetyOperation = safetyOperation
         self.safetyStatus = safetyStatus
+        self.cpuFilteredCelsius = cpuFilteredCelsius
+        self.gpuFilteredCelsius = gpuFilteredCelsius
+        self.cpuPredictedCelsius = cpuPredictedCelsius
+        self.gpuPredictedCelsius = gpuPredictedCelsius
+        self.cpuSlopeCelsiusPerSecond = cpuSlopeCelsiusPerSecond
+        self.gpuSlopeCelsiusPerSecond = gpuSlopeCelsiusPerSecond
+        self.sensorAgeSeconds = sensorAgeSeconds
+        self.sensorQuality = sensorQuality
+        self.controlLevelRequested = controlLevelRequested
+        self.controlLevelApplied = controlLevelApplied
+        self.governorState = governorState
+        self.actuator = actuator
+        self.actuatorResult = actuatorResult
+        self.transitionReason = transitionReason
+        self.ephemeralProcessStartID = ephemeralProcessStartID
+        self.frameTimeP50MS = frameTimeP50MS
+        self.frameTimeP95MS = frameTimeP95MS
+        self.frameTimeP99MS = frameTimeP99MS
+        self.onePercentLowFPS = onePercentLowFPS
+        self.frameTimeOver50MSPerMinute = frameTimeOver50MSPerMinute
+        self.frameTimeOver100MSPerMinute = frameTimeOver100MSPerMinute
+        self.suspensionCount = suspensionCount
+        self.suspensionDurationSeconds = suspensionDurationSeconds
     }
 }
 
@@ -224,7 +293,10 @@ final class SessionTelemetryWriter {
                         emergency: Bool,
                         reason: String,
                         resourceMetrics: ProcessTreeResourceMetrics? = nil,
-                        qosEvidence: QoSEvidence? = nil) {
+                        qosEvidence: QoSEvidence? = nil,
+                        b1Decision: B1GovernorDecision? = nil,
+                        signal: ThermalSignalSnapshot? = nil,
+                        ephemeralProcessStartID: UInt64? = nil) {
         queue.async { [weak self] in
             guard let self, let sessionID = self.sessionID else { return }
             self.appendLocked(SessionTelemetryEvent(
@@ -258,7 +330,22 @@ final class SessionTelemetryWriter {
                 qosEvidenceState: qosEvidence?.state.rawValue,
                 requestedQoSClass: qosEvidence?.requestedClass?.rawValue,
                 dominantQoSClass: qosEvidence?.dominantClass?.rawValue,
-                observedRequestedQoSCPUTimeNS: qosEvidence?.observedRequestedCPUTimeNS
+                observedRequestedQoSCPUTimeNS: qosEvidence?.observedRequestedCPUTimeNS,
+                cpuFilteredCelsius: b1Decision?.cpuFiltered,
+                gpuFilteredCelsius: b1Decision?.gpuFiltered,
+                cpuPredictedCelsius: b1Decision?.cpuPredicted,
+                gpuPredictedCelsius: b1Decision?.gpuPredicted,
+                cpuSlopeCelsiusPerSecond: b1Decision?.cpuSlope,
+                gpuSlopeCelsiusPerSecond: b1Decision?.gpuSlope,
+                sensorAgeSeconds: signal?.sampleAgeSeconds,
+                sensorQuality: signal?.quality.rawValue,
+                controlLevelRequested: b1Decision?.requestedControlLevel,
+                controlLevelApplied: b1Decision?.appliedControlLevel,
+                governorState: b1Decision?.state.rawValue,
+                actuator: b1Decision?.actuator,
+                actuatorResult: b1Decision?.actuatorResult,
+                transitionReason: b1Decision?.transitionReason,
+                ephemeralProcessStartID: ephemeralProcessStartID
             ))
         }
     }

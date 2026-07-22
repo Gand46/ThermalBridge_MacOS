@@ -151,11 +151,21 @@ final class ProcessStore: ObservableObject {
     }
     @Published var automaticLimiterPulseMode: ActivityLimiterPulseMode = .audioSafe
     @Published var automaticThermalRequestedActivityPercent = 100
+    @Published var b1ThermalGovernorState: B1GovernorState = .observation
+    @Published var b1ThermalControlLevel = 0.0
     @Published var automaticEmergencyBackgroundEnabled = false {
         didSet {
             guard !loadingPersistence, automaticEmergencyBackgroundEnabled != oldValue else { return }
             UserDefaults.standard.set(automaticEmergencyBackgroundEnabled, forKey: Keys.automaticEmergencyBackgroundEnabled)
             evaluateAutomaticThermalMode(force: true)
+        }
+    }
+    @Published var automaticSelectHighestCPUExecutableEnabled = true {
+        didSet {
+            guard !loadingPersistence,
+                  automaticSelectHighestCPUExecutableEnabled != oldValue else { return }
+            UserDefaults.standard.set(automaticSelectHighestCPUExecutableEnabled,
+                                      forKey: Keys.automaticSelectHighestCPUExecutableEnabled)
         }
     }
     @Published var automaticGPURefreshReductionEnabled = false {
@@ -187,6 +197,7 @@ final class ProcessStore: ObservableObject {
     )
     private var lastCrossOverQoSRequestAccepted = false
     private var lastCrossOverQoSRequestFailed = false
+    var automaticCrossOverLaunchAfterStartupRequested = false
 
     func updateCrossOverEfficientLaunchStatus(_ status: String) {
         crossOverEfficientLaunchStatus = status
@@ -292,6 +303,7 @@ final class ProcessStore: ObservableObject {
     let sessionTelemetryWriter = SessionTelemetryWriter()
     let temperatureSensor = MacMonTemperatureSensor()
     let automaticThermalEngine = ThermalControlEngine()
+    let b1PredictiveThermalGovernor = B1PredictiveThermalGovernor()
     let controller = ProcessController()
     let displayRefreshController = DisplayRefreshController()
     lazy var ioReportCapabilityAvailable = tb_ioreport_capability() == 1
@@ -367,6 +379,7 @@ final class ProcessStore: ObservableObject {
         static let automaticPowerAnticipationEnabled = "ThermalBridge.automaticPowerAnticipationEnabled.beta4"
         static let automaticAudioProtectionEnabled = "ThermalBridge.automaticAudioProtection.beta6"
         static let automaticEmergencyBackgroundEnabled = "ThermalBridge.automaticEmergencyBackgroundEnabled.beta4"
+        static let automaticSelectHighestCPUExecutableEnabled = "ThermalBridge.automaticSelectHighestCPUExecutableEnabled.rc311"
         static let automaticGPURefreshReductionEnabled = "ThermalBridge.automaticGPURefreshReductionEnabled.beta10"
         static let crossOverLaunchQoSClamp = "ThermalBridge.crossOverLaunchQoSClamp.beta4"
         static let gpuGuardTarget = "ThermalBridge.gpuGuardTarget.v1"
@@ -625,12 +638,12 @@ final class ProcessStore: ObservableObject {
         runningCrossOverProcesses.filter(isCrossOverGameCandidate)
     }
 
-    /// Procesos que pueden seleccionarse manualmente cuando CrossOver oculta el
-    /// nombre del .exe detrás de wine64-preloader. Los candidatos resueltos se
-    /// muestran primero; los hosts sin .exe quedan como respaldo para asociar un
-    /// ejecutable escrito manualmente.
+    /// Procesos que pueden seleccionarse manualmente. Por petición explícita,
+    /// el único filtro visible es que el nombre publicado contenga `.exe`;
+    /// no se exige evidencia CrossOver ni argv reconocible. La autoaplicación
+    /// continúa descartando candidatos ambiguos salvo confirmación explícita.
     var crossOverSelectableProcesses: [ProcessSnapshot] {
-        runningCrossOverProcesses.filter(isCrossOverSelectableProcess)
+        processes.filter(isCrossOverSelectableProcess)
     }
 
     func isCrossOverRelated(_ process: ProcessSnapshot) -> Bool {
@@ -690,27 +703,9 @@ final class ProcessStore: ObservableObject {
     }
 
     func isCrossOverSelectableProcess(_ process: ProcessSnapshot) -> Bool {
-        guard isCrossOverRelated(process), !isProtected(process) else { return false }
-        if isCrossOverGameCandidate(process) { return true }
-        if isCrossOverLauncher(process) || isCrossOverHelper(process) { return false }
-
-        let lower = process.name.lowercased()
-        let runtimeHosts: Set<String> = [
-            "wine", "wine64", "wine-preloader", "wine64-preloader", "cxstart"
-        ]
-        if runtimeHosts.contains(lower) {
-            // CrossOver puede ocultar por completo argv del ejecutable Windows.
-            // El host Wine sigue siendo seleccionable manualmente aunque en esta
-            // muestra esté al 0 % de CPU o no contenga «.exe» en el comando.
-            return true
-        }
-
-        // Algunos builds de CrossOver exponen el nombre del ejecutable sin la
-        // extensión o lo recortan en proc_name. Se conserva como respaldo si
-        // pertenece inequívocamente a un árbol de CrossOver.
-        return !isCrossOverInfrastructure(process)
-            && (hasCrossOverRuntimeAncestor(process)
-                || process.path.lowercased().contains("crossover.app"))
+        guard !isProtected(process) else { return false }
+        return process.name.lowercased().contains(".exe")
+            || process.displayName.lowercased().contains(".exe")
     }
 
     func crossOverRoleLabel(_ process: ProcessSnapshot) -> String {
@@ -970,6 +965,7 @@ final class ProcessStore: ObservableObject {
                 self.lastCrossOverScanDate = Date()
                 self.isScanningCrossOver = false
                 self.addLog("CrossOver: detectadas \(result.installations.count) instalaciones y \(result.bottles.count) botellas.")
+                self.launchCrossOverAfterThermalBridgeIfNeeded()
             }
         }
     }
@@ -1426,6 +1422,13 @@ final class ProcessStore: ObservableObject {
             automaticEmergencyBackgroundEnabled = UserDefaults.standard.bool(forKey: Keys.automaticEmergencyBackgroundEnabled)
         } else {
             automaticEmergencyBackgroundEnabled = false
+        }
+        if UserDefaults.standard.object(forKey: Keys.automaticSelectHighestCPUExecutableEnabled) != nil {
+            automaticSelectHighestCPUExecutableEnabled = UserDefaults.standard.bool(
+                forKey: Keys.automaticSelectHighestCPUExecutableEnabled
+            )
+        } else {
+            automaticSelectHighestCPUExecutableEnabled = true
         }
         // RC3.5 conserva retirada la integración experimental de Game
         // Mode y limpia la preferencia que podía quedar guardada por Beta 10.

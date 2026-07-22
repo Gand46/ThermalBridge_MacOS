@@ -43,6 +43,7 @@ BUILD_LOG="$ROOT_DIR/validation_build.log"
 SWIFT_SOURCES=(
   "$ROOT_DIR/Sources/Models.swift"
   "$ROOT_DIR/Sources/ThermalControlLogic.swift"
+  "$ROOT_DIR/Sources/B1PredictiveThermalGovernor.swift"
   "$ROOT_DIR/Sources/MacProcessPolicy.swift"
   "$ROOT_DIR/Sources/MacMonTemperatureSensor.swift"
   "$ROOT_DIR/Sources/ProcessObservationCache.swift"
@@ -83,6 +84,7 @@ printf '[1/10] Verificando estructura limpia e integridad...\n'
 [[ -f "$ROOT_DIR/Sources/AutomaticThermalView.swift" ]]
 [[ -f "$ROOT_DIR/Sources/AutomaticThermalSupport.swift" ]]
 [[ -f "$ROOT_DIR/Sources/ThermalControlLogic.swift" ]]
+[[ -f "$ROOT_DIR/Sources/B1PredictiveThermalGovernor.swift" ]]
 [[ -f "$ROOT_DIR/Sources/MacProcessPolicy.swift" ]]
 [[ -f "$ROOT_DIR/Tests/MacProcessPolicyTests.swift" ]]
 [[ -f "$ROOT_DIR/Tests/MacPolicyProbe.c" ]]
@@ -100,12 +102,13 @@ printf '[1/10] Verificando estructura limpia e integridad...\n'
 [[ -f "$ROOT_DIR/Tests/DisplayRefreshLogicTests.swift" ]]
 [[ -f "$ROOT_DIR/Tests/IOReportCapabilityProbe.c" ]]
 [[ -f "$ROOT_DIR/BASELINE_BETA6_SHA256.txt" ]]
-[[ -f "$ROOT_DIR/RC35_FROZEN_SHA256.txt" ]]
+[[ -f "$ROOT_DIR/RC313_FROZEN_SHA256.txt" ]]
 [[ -f "$ROOT_DIR/Tests/SensorOutputProbe.swift" ]]
 [[ -f "$ROOT_DIR/Sources/MacMonTemperatureSensor.swift" ]]
 [[ -f "$ROOT_DIR/Sources/TBTemperatureSensor.c" ]]
 [[ -f "$ROOT_DIR/Instalar_Sensor_macmon.command" ]]
 [[ -f "$ROOT_DIR/Empaquetar_Proyecto.command" ]]
+[[ -f "$ROOT_DIR/Prevalidar.command" ]]
 [[ ! -e "$ROOT_DIR/LegacyUI" ]]
 [[ ! -e "$ROOT_DIR/RC3_FROZEN_SHA256.txt" ]]
 [[ ! -e "$ROOT_DIR/PROTOCOLO_AB_BETA8.md" ]]
@@ -122,8 +125,8 @@ grep -q 'GPU máxima' "$ROOT_DIR/Sources/AutomaticThermalView.swift"
 grep -q 'evaluateAutomaticThermalMode' "$ROOT_DIR/Sources/ProcessStore.swift"
 printf '  Verificando hashes y ausencia de la ruta QoS-first rechazada...\n'
 (cd "$ROOT_DIR" && shasum -a 256 -c BASELINE_BETA6_SHA256.txt)
-printf '  Verificando congelación completa de las fuentes RC3.5...\n'
-(cd "$ROOT_DIR" && shasum -a 256 -c RC35_FROZEN_SHA256.txt)
+printf '  Verificando congelación completa de las fuentes RC3.13...\n'
+(cd "$ROOT_DIR" && shasum -a 256 -c RC313_FROZEN_SHA256.txt)
 if grep -REq 'automaticQoSFirstEnabled|qosMaintenanceActive|QoSLaunchSessionMatcher' \
     "$ROOT_DIR/Sources" "$ROOT_DIR/Tests"; then
   echo "ERROR: reapareció lógica QoS-first de Beta 7 en la línea estable."
@@ -185,6 +188,7 @@ env -u MACOSX_DEPLOYMENT_TARGET "$SWIFTC" \
   -module-cache-path "$MODULE_CACHE" \
   "$ROOT_DIR/Sources/Models.swift" \
   "$ROOT_DIR/Sources/ThermalControlLogic.swift" \
+  "$ROOT_DIR/Sources/B1PredictiveThermalGovernor.swift" \
   "$ROOT_DIR/Tests/ThermalControlTests.swift" \
   -framework Foundation \
   -o "$THERMAL_TEST_BINARY"
@@ -263,6 +267,7 @@ env -u MACOSX_DEPLOYMENT_TARGET "$SWIFTC" \
   -module-cache-path "$MODULE_CACHE" \
   "$ROOT_DIR/Sources/Models.swift" \
   "$ROOT_DIR/Sources/ProcessResourceMetrics.swift" \
+  "$ROOT_DIR/Sources/B1PredictiveThermalGovernor.swift" \
   "$ROOT_DIR/Sources/SessionTelemetry.swift" \
   "$ROOT_DIR/Tests/SessionTelemetryTests.swift" \
   -framework Foundation \
@@ -361,6 +366,7 @@ printf '  Probando disponibilidad IOReport sin crear suscripción...\n'
 "$IOREPORT_PROBE_BINARY"
 plutil -lint "$ROOT_DIR/Resources/Info.plist"
 bash -n "$ROOT_DIR/build_app.sh"
+bash -n "$ROOT_DIR/Prevalidar.command"
 bash -n "$ROOT_DIR/Construir.command"
 bash -n "$ROOT_DIR/Instalar_en_Aplicaciones.command"
 bash -n "$ROOT_DIR/Instalar_Sensor_macmon.command"
@@ -470,7 +476,7 @@ grep -q 'IOReportCreateSamplesDelta' "$ROOT_DIR/Sources/ProcessBridge.c"
 grep -q 'IOReportCapabilityProbe: PASS' "$ROOT_DIR/Tests/IOReportCapabilityProbe.c"
 grep -q 'DisplayRefreshLogicTests: OK' "$ROOT_DIR/Tests/DisplayRefreshLogicTests.swift"
 if grep -REq 'GameModeController|gamepolicyctl|game-mode[[:space:]]+set' "$ROOT_DIR/Sources"; then
-  echo "ERROR: reapareció la integración Game Mode retirada en RC3.5."
+  echo "ERROR: reapareció la integración Game Mode retirada en RC3.13."
   exit 1
 fi
 
@@ -488,7 +494,7 @@ printf '[9/10] Verificando versión, binarios, recursos y firma...\n'
 VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$ROOT_DIR/Resources/Info.plist")"
 BUILD="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$ROOT_DIR/Resources/Info.plist")"
 BUNDLE_IDENTIFIER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$ROOT_DIR/Resources/Info.plist")"
-[[ "$VERSION" == "0.7.0" && "$BUILD" == "32" ]]
+[[ "$VERSION" == "0.7.0" && "$BUILD" == "33" ]]
 [[ "$BUNDLE_IDENTIFIER" == "com.germangomez.thermalbridge" ]]
 [[ -x "$ROOT_DIR/dist/ThermalBridge.app/Contents/MacOS/ThermalBridge" ]]
 [[ -x "$ROOT_DIR/dist/ThermalBridge.app/Contents/Helpers/TBWatchdog" ]]
@@ -553,5 +559,5 @@ PROJECT_ARCHIVE="$("$ROOT_DIR/Empaquetar_Proyecto.command" --no-pause)"
 /usr/bin/unzip -tq "$PROJECT_ARCHIVE" >/dev/null
 printf '  ZIP del proyecto: %s\n' "$PROJECT_ARCHIVE"
 
-printf '\nVALIDACIÓN COMPLETADA: ThermalBridge %s RC3.5 (%s)\n' "$VERSION" "$BUILD"
+printf '\nVALIDACIÓN COMPLETADA: ThermalBridge %s RC3.13 (%s)\n' "$VERSION" "$BUILD"
 printf 'Aplicación validada: %s\n' "$ROOT_DIR/dist/ThermalBridge.app"

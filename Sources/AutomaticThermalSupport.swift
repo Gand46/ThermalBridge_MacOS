@@ -18,6 +18,10 @@ extension ProcessStore {
             if preferredTargetIsCurrent,
                rhs.identity == automaticThermalPreferredProcessID { return false }
 
+            let leftRelated = isCrossOverRelated(lhs)
+            let rightRelated = isCrossOverRelated(rhs)
+            if leftRelated != rightRelated { return leftRelated }
+
             let leftScore = automaticThermalConfiguration.matchScore(for: lhs) ?? 0
             let rightScore = automaticThermalConfiguration.matchScore(for: rhs) ?? 0
             if leftScore != rightScore { return leftScore > rightScore }
@@ -38,6 +42,10 @@ extension ProcessStore {
 
     var automaticThermalResolvedCandidateCount: Int {
         automaticThermalGameCandidates.filter { $0.windowsExecutableName != nil }.count
+    }
+
+    private var automaticCrossOverMatchCandidates: [ProcessSnapshot] {
+        crossOverSelectableProcesses.filter(isCrossOverRelated)
     }
 
     var temperatureSensorAvailable: Bool {
@@ -175,6 +183,16 @@ extension ProcessStore {
         }
         temperatureSensor.start(intervalMilliseconds: 1000)
 
+        if automaticSelectHighestCPUExecutableEnabled,
+           !automaticThermalConfiguration.executableContains.isEmpty {
+            var configuration = automaticThermalConfiguration
+            configuration.executableContains = ""
+            automaticThermalPreferredProcessID = nil
+            automaticThermalPreferredExecutableNeedle = nil
+            automaticThermalSessionIDs.removeAll()
+            automaticThermalConfiguration = configuration
+        }
+
         if automaticThermalConfiguration.autoAttach,
            automaticThermalConfiguration.hasTarget {
             automaticThermalEnabled = true
@@ -232,6 +250,19 @@ extension ProcessStore {
         let manualIsExecutable = manual.lowercased().hasSuffix(".exe")
         let directProcessName = process.name.lowercased().hasSuffix(".exe")
 
+        if automaticSelectHighestCPUExecutableEnabled {
+            configuration.executableContains = ""
+            configuration.bottleName = process.crossOverBottleName ?? configuration.bottleName
+            automaticThermalPreferredProcessID = process.identity
+            automaticThermalPreferredExecutableNeedle = nil
+            automaticThermalSessionIDs.formUnion(automaticSessionIdentities(around: process))
+            automaticThermalConfiguration = configuration
+            automaticThermalStatus = "Proceso automático: \(process.displayName)"
+            automaticThermalReason = "Auto .exe por CPU activo; asociación limitada a esta sesión"
+            addLog("CrossOver: PID \(process.pid) seleccionado por mayor CPU sin guardar .exe persistente.")
+            return
+        }
+
         if manualIsExecutable,
            process.containsWindowsExecutable(named: manual) {
             // La selección confirma el objetivo escrito, sin cambiar mayúsculas
@@ -246,10 +277,13 @@ extension ProcessStore {
             configuration.executableContains = executable
         } else {
             configuration.bottleName = process.crossOverBottleName ?? configuration.bottleName
+            automaticThermalPreferredProcessID = process.identity
+            automaticThermalPreferredExecutableNeedle = nil
+            automaticThermalSessionIDs.formUnion(automaticSessionIdentities(around: process))
             automaticThermalConfiguration = configuration
-            automaticThermalStatus = "Proceso seleccionado; escribe el nombre exacto del .exe"
-            automaticThermalReason = "CrossOver no publicó el ejecutable en los argumentos del proceso"
-            addLog("CrossOver: PID \(process.pid) seleccionado sin nombre .exe; se requiere entrada manual.", isError: true)
+            automaticThermalStatus = "Proceso seleccionado: \(process.displayName)"
+            automaticThermalReason = "Selección manual explícita sin .exe; se controla esta sesión y sus descendientes"
+            addLog("CrossOver: PID \(process.pid) seleccionado sin nombre .exe; asociación limitada a la sesión.")
             return
         }
 
@@ -342,13 +376,35 @@ extension ProcessStore {
         }
     }
 
+    func launchCrossOverAfterThermalBridgeIfNeeded() {
+        guard !automaticCrossOverLaunchAfterStartupRequested else { return }
+        automaticCrossOverLaunchAfterStartupRequested = true
+        guard let installation = crossOverInstallations.first else {
+            updateCrossOverEfficientLaunchStatus("No se detectó CrossOver para abrirlo con QoS")
+            return
+        }
+        guard crossOverQoSLaunchAvailable else {
+            updateCrossOverEfficientLaunchStatus("El clamp QoS de lanzamiento no está disponible en este macOS")
+            return
+        }
+
+        updateCrossOverEfficientLaunchStatus(
+            "ThermalBridge listo; abriendo CrossOver con QoS \(crossOverLaunchQoSClamp.title)…"
+        )
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+            self?.launchCrossOverWithQoS(installation)
+        }
+    }
+
     func startAutomaticThermalControl(processID: ProcessIdentity?) {
         disablePreviousAutomaticSystems()
         clearAutomaticThermalRequests()
 
-        guard automaticThermalConfiguration.hasTarget else {
-            automaticThermalStatus = "Selecciona y guarda primero el ejecutable del juego"
-            addLog("Modo térmico: falta seleccionar un juego.", isError: true)
+        guard automaticThermalConfiguration.hasTarget
+                || processID != nil
+                || automaticThermalPreferredProcessID != nil else {
+            automaticThermalStatus = "Selecciona un proceso del árbol CrossOver o guarda el .exe"
+            addLog("Modo térmico: falta seleccionar un proceso o un juego.", isError: true)
             return
         }
 
@@ -361,7 +417,8 @@ extension ProcessStore {
         if let processID,
            let process = process(for: processID),
            isCrossOverSelectableProcess(process),
-           (automaticThermalConfiguration.matchScore(for: process) != nil
+           (!automaticThermalConfiguration.hasTarget
+                || automaticThermalConfiguration.matchScore(for: process) != nil
                 || (preferredTargetIsCurrent
                     && automaticThermalPreferredProcessID == process.identity)) {
             selected = process
@@ -378,6 +435,9 @@ extension ProcessStore {
             ? "Preparando políticas macOS"
             : "Políticas macOS desactivadas"
         automaticThermalEngine.reset(activityPercent: automaticThermalConfiguration.maximumActivityPercent)
+        b1PredictiveThermalGovernor.reset()
+        b1ThermalGovernorState = .observation
+        b1ThermalControlLevel = 0
         automaticThermalActivityPercent = automaticThermalConfiguration.maximumActivityPercent
         automaticThermalRequestedActivityPercent = automaticThermalConfiguration.maximumActivityPercent
         automaticLimiterPulseMode = automaticAudioProtectionEnabled ? .audioSafe : .burst
@@ -473,6 +533,14 @@ extension ProcessStore {
             sessionTelemetryWriter.stop(reason: "game_ended")
             automaticThermalStatus = "El juego terminó"
             automaticThermalReason = "Autoaplicación desactivada"
+            return
+        }
+
+        guard automaticThermalConfiguration.hasTarget else {
+            automaticThermalEnabled = false
+            sessionTelemetryWriter.stop(reason: "manual_tree_session_ended")
+            automaticThermalStatus = "El proceso seleccionado terminó"
+            automaticThermalReason = "La selección por árbol sin .exe no se rearma automáticamente"
             return
         }
 
@@ -577,12 +645,17 @@ extension ProcessStore {
         automaticThermalSessionIDs.formUnion(automaticSessionIdentities(around: root))
         selectForHistory(root)
         automaticThermalEngine.reset(activityPercent: automaticThermalConfiguration.maximumActivityPercent)
+        b1PredictiveThermalGovernor.reset()
+        b1ThermalGovernorState = .observation
+        b1ThermalControlLevel = 0
         automaticThermalActivityPercent = automaticThermalConfiguration.maximumActivityPercent
         automaticThermalRequestedActivityPercent = automaticThermalConfiguration.maximumActivityPercent
         automaticLimiterPulseMode = automaticAudioProtectionEnabled ? .audioSafe : .burst
         lastAutomaticThermalEvaluation = .distantPast
         lastAutomaticThermalDecisionReadingDate = nil
-        let targetName = automaticThermalConfiguration.executableContains
+        let targetName = automaticThermalConfiguration.hasTarget
+            ? automaticThermalConfiguration.executableContains
+            : root.displayName
         automaticThermalStatus = "Controlando \(targetName) mediante \(root.displayName)\(automatic ? " automáticamente" : "")"
         automaticThermalReason = "Esperando la primera decisión térmica"
         addLog("Modo térmico: control aplicado a \(root.displayName)\(automatic ? " automáticamente" : "").")
@@ -609,6 +682,33 @@ extension ProcessStore {
         addLog(storedBottle.isEmpty
                ? "CrossOver: botella detectada automáticamente: \(detectedBottle)."
                : "CrossOver: se corrigió la botella guardada de \(storedBottle) a \(detectedBottle) usando evidencia exacta de \(target).")
+    }
+
+    private func currentThermalSignalSnapshot(now: Date) -> ThermalSignalSnapshot {
+        let age = lastTemperatureReadingDate.map { now.timeIntervalSince($0) }
+        let quality: B1ThermalSensorQuality
+        if let age {
+            switch age {
+            case ...2: quality = .fresh
+            case ...5: quality = .hold
+            case ...10: quality = .stale
+            default: quality = .lost
+            }
+        } else {
+            quality = .lost
+        }
+        return ThermalSignalSnapshot(date: now,
+                                     cpuTemperature: cpuTemperatureCelsius,
+                                     gpuTemperature: gpuTemperatureCelsius,
+                                     thermalState: thermalLabel,
+                                     sampleAgeSeconds: age,
+                                     source: temperatureReadingSource,
+                                     quality: quality,
+                                     cpuSensorCount: cpuTemperatureSensorCount,
+                                     gpuSensorCount: gpuTemperatureSensorCount,
+                                     cpuMaximumSensor: cpuMaximumSensorName,
+                                     gpuMaximumSensor: gpuMaximumSensorName,
+                                     lastError: temperatureSensorState.description)
     }
 
     private func evaluateAutomaticTemperatureDecision(root: ProcessSnapshot, force: Bool) {
@@ -638,33 +738,35 @@ extension ProcessStore {
         let decision = automaticThermalEngine.update(input: input,
                                                      configuration: automaticThermalConfiguration,
                                                      force: force)
-        // En emergencia térmica prevalece el freno completo del árbol. En el
-        // funcionamiento normal, la protección de audio detiene únicamente el
-        // host principal en pulsos cortos; así los ayudantes de audio/red que
-        // viven como procesos separados pueden continuar atendiendo sus buffers.
-        let pulseMode: ActivityLimiterPulseMode = (automaticAudioProtectionEnabled && !decision.emergency)
-            ? .audioSafe
-            : .burst
-        automaticThermalRequestedActivityPercent = decision.activityPercent
-        automaticThermalActivityPercent = decision.activityPercent
+        let signal = currentThermalSignalSnapshot(now: now)
+        let b1Decision = b1PredictiveThermalGovernor.update(
+            signal: signal,
+            targetCPU: automaticThermalConfiguration.cpuTargetCelsius,
+            targetGPU: automaticThermalConfiguration.gpuTargetCelsius,
+            force: force
+        )
+        b1ThermalGovernorState = b1Decision.state
+        b1ThermalControlLevel = b1Decision.appliedControlLevel
+        let pulseMode: ActivityLimiterPulseMode = .burst
+        let emergencyLimiterPercent = b1Decision.emergency
+            ? min(decision.activityPercent, b1Decision.activityPercentShadow, 25)
+            : nil
+        automaticThermalRequestedActivityPercent = b1Decision.activityPercentShadow
+        automaticThermalActivityPercent = emergencyLimiterPercent ?? 100
         automaticLimiterPulseMode = pulseMode
-        automaticThermalReason = decision.reason
-        if decision.activityPercent < 100 {
-            if pulseMode == .audioSafe {
-                automaticThermalReason += " · audio protegido: host principal, pausas de hasta 2 ms"
-            } else if decision.emergency && automaticAudioProtectionEnabled {
-                automaticThermalReason += " · emergencia: freno completo del árbol"
-            } else {
-                automaticThermalReason += " · freno por bloques: puede entrecortar el audio"
-            }
+        automaticThermalReason = b1Decision.reason
+        if b1Decision.emergency {
+            automaticThermalReason += " · emergencia: limitador genérico habilitado"
+        } else {
+            automaticThermalReason += " · modo sombra: sin SIGSTOP/SIGCONT fuera de emergencia"
         }
-        automaticThermalEmergency = decision.emergency
-        cpuTemperatureSmoothedCelsius = decision.cpuSmoothed
-        gpuTemperatureSmoothedCelsius = decision.gpuSmoothed
+        automaticThermalEmergency = b1Decision.emergency
+        cpuTemperatureSmoothedCelsius = b1Decision.cpuFiltered ?? decision.cpuSmoothed
+        gpuTemperatureSmoothedCelsius = b1Decision.gpuFiltered ?? decision.gpuSmoothed
 
         updateCPULimitRequest(root,
                               sourceKey: automaticThermalSourceKey,
-                              percent: decision.activityPercent < 100 ? decision.activityPercent : nil,
+                              percent: emergencyLimiterPercent,
                               pulseMode: pulseMode)
         let resourceEvidence = refreshAutomaticResourceEvidence(for: root)
         sessionTelemetryWriter.recordDecision(
@@ -675,13 +777,16 @@ extension ProcessStore {
             sensorFresh: temperatureReadingFresh,
             sensorSource: temperatureReadingSource,
             thermalState: thermalLabel.rawValue,
-            requestedActivityPercent: decision.activityPercent,
+            requestedActivityPercent: b1Decision.activityPercentShadow,
             appliedActivityPercent: cpuLimitByID[root.identity] ?? 100,
-            pulseMode: pulseMode == .audioSafe ? "audio_safe" : "burst",
-            emergency: decision.emergency,
-            reason: decision.reason,
+            pulseMode: b1Decision.emergency ? "burst" : "none",
+            emergency: b1Decision.emergency,
+            reason: b1Decision.reason,
             resourceMetrics: resourceEvidence.0,
-            qosEvidence: resourceEvidence.1
+            qosEvidence: resourceEvidence.1,
+            b1Decision: b1Decision,
+            signal: signal,
+            ephemeralProcessStartID: automaticSelectHighestCPUExecutableEnabled ? root.identity.startID : nil
         )
         applyAutomaticMacPolicy(root: root)
         let cpuError = cpuTemperatureCelsius.map {
@@ -694,14 +799,15 @@ extension ProcessStore {
         applyAutomaticEmergencyBackground(
             root: root,
             enabled: automaticEmergencyBackgroundEnabled
-                && (decision.emergency || severeSensorExcess)
+                && (b1Decision.emergency || severeSensorExcess)
         )
         reconcileDisplayRefreshIntegration()
 
         let cpu = cpuTemperatureCelsius.map { String(format: "%.1f °C", $0) } ?? "—"
         let gpu = gpuTemperatureCelsius.map { String(format: "%.1f °C", $0) } ?? "—"
-        let limiterLabel = decision.activityPercent < 100 ? " · \(pulseMode.title)" : ""
-        automaticThermalStatus = "\(automaticThermalConfiguration.executableContains) · host \(root.displayName) · CPU máx. \(cpu) · GPU máx. \(gpu) · actividad \(decision.activityPercent)%\(limiterLabel)"
+        let targetLabel = automaticThermalConfiguration.executableContains.isEmpty ? root.displayName : automaticThermalConfiguration.executableContains
+        let limiterLabel = b1Decision.emergency ? " · \(pulseMode.title)" : " · B1 sombra"
+        automaticThermalStatus = "\(targetLabel) · host \(root.displayName) · CPU máx. \(cpu) · GPU máx. \(gpu) · control B1 \(Int((b1Decision.appliedControlLevel * 100).rounded()))%\(limiterLabel)"
     }
 
     private func automaticSessionTelemetryConfiguration() -> SessionTelemetryEvent.Configuration {
@@ -1027,16 +1133,18 @@ extension ProcessStore {
     }
 
     private func preferredAutomaticThermalProcess() -> ProcessSnapshot? {
-        guard automaticThermalPreferredExecutableNeedle
-                == automaticThermalConfiguration.normalizedExecutableNeedle,
-              let identity = automaticThermalPreferredProcessID,
+        guard let identity = automaticThermalPreferredProcessID,
               let process = process(for: identity),
               isCrossOverSelectableProcess(process) else { return nil }
+        guard automaticThermalConfiguration.hasTarget else { return process }
+        guard automaticThermalPreferredExecutableNeedle
+                == automaticThermalConfiguration.normalizedExecutableNeedle else { return nil }
         return process
     }
 
     private func bestAutomaticThermalMatch() -> ProcessSnapshot? {
-        let exact = crossOverSelectableProcesses
+        let matchCandidates = automaticCrossOverMatchCandidates
+        let exact = matchCandidates
             .compactMap { process -> (ProcessSnapshot, Int)? in
                 guard let score = automaticThermalConfiguration.matchScore(for: process) else { return nil }
                 let roleBonus = isCrossOverGameCandidate(process) ? 200 : 0
@@ -1058,8 +1166,10 @@ extension ProcessStore {
         // evitando elegir entre dos sesiones realmente ambiguas.
         let strongExecutableMatches = CrossOverExecutableResolver.strongMatches(
             target: automaticThermalConfiguration.executableContains,
-            among: crossOverSelectableProcesses.filter {
-                !isCrossOverLauncher($0) && !isCrossOverHelper($0)
+            among: matchCandidates.filter {
+                !isCrossOverInfrastructure($0)
+                    && !isCrossOverLauncher($0)
+                    && !isCrossOverHelper($0)
             }
         )
         if CrossOverExecutableResolver.isUnambiguousRecoverySet(strongExecutableMatches) {
@@ -1077,9 +1187,10 @@ extension ProcessStore {
             }.first
         }
 
-        let sessionCandidates = crossOverSelectableProcesses
+        let sessionCandidates = matchCandidates
             .filter { process in
                 automaticThermalSessionIDs.contains(process.identity)
+                    && !isCrossOverInfrastructure(process)
                     && !isCrossOverLauncher(process)
                     && !isCrossOverHelper(process)
             }
@@ -1101,11 +1212,12 @@ extension ProcessStore {
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard !configuredBottle.isEmpty else { return nil }
 
-        let unresolved = crossOverSelectableProcesses
+        let unresolved = matchCandidates
             .filter { process in
                 guard process.windowsExecutableEvidenceScore(
                     named: automaticThermalConfiguration.executableContains
                 ) == nil,
+                !isCrossOverInfrastructure(process),
                 !isCrossOverLauncher(process),
                 !isCrossOverHelper(process),
                 let detectedBottle = process.crossOverBottleName else { return false }

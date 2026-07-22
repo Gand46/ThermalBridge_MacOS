@@ -1,5 +1,66 @@
 # Changelog
 
+## 0.7.0 RC3.13 (build 40)
+
+- Añade `B1PredictiveThermalGovernor` con señal térmica redundante, filtro, pendiente robusta, predicción a horizonte configurable, PI anti-windup, límites asimétricos de velocidad, estados e histéresis.
+- Integra B1 en modo sombra para registrar nivel de control, estado, predicción, calidad/edad del sensor y actuador sin usar `SIGSTOP/SIGCONT` fuera de emergencia.
+- Extiende telemetría compatible y `Tools/Analizar_Telemetria_B1.py` con frame pacing opcional, transiciones de actuador, variación de control, tiempo en banda, tiempo sin sensor, suspensiones y correlaciones básicas.
+- Mantiene la no persistencia del `.exe` en selección automática y conserva el motor térmico Beta 6 como línea de compatibilidad.
+
+## 0.7.0 RC3.11 build 38 — preselección por CPU del .exe más demandante
+
+- Parte de RC3.10 build 37 sin modificar el motor térmico, el limitador ni los valores predeterminados térmicos.
+- Añade la casilla **Autoaplicar al proceso .exe más demandante** en la sección de juego.
+- Con la casilla activada, la lista desplegable preselecciona el proceso `.exe` detectado con mayor CPU; con la casilla desactivada, conserva el override manual del usuario.
+- Persiste la preferencia en `UserDefaults` y la deja activada por defecto para facilitar el caso de varios `.exe`.
+- Mantiene el filtro único del selector por nombre `.exe` y la autoapertura de CrossOver con clamp QoS solicitado.
+- Compilación 38.
+
+## 0.7.0 RC3.10 build 37 — filtro único por nombre .exe y autoapertura QoS
+
+- Parte de RC3.9 build 36 sin modificar el motor térmico, el limitador ni los valores predeterminados térmicos.
+- Cambia el selector manual para que el único filtro visible sea que el nombre publicado del proceso contenga `.exe`; no se exige evidencia CrossOver ni argv reconocible.
+- Conserva la selección manual explícita de sesión y la autoaplicación persistente solo cuando exista objetivo `.exe` válido.
+- Lanza CrossOver después de iniciar ThermalBridge mediante la ruta existente de `posix_spawn` con clamp QoS solicitado, si CrossOver está detectado, cerrado y el sistema soporta la llamada.
+- Mantiene la evidencia QoS como observación posterior; no afirma afinidad ni garantía del planificador más allá de la solicitud de clamp aceptada.
+- Compilación 37.
+
+## 0.7.0 RC3.9 build 36 — selector manual sin requisito CrossOver/.exe
+
+- Parte de RC3.8 build 35 sin modificar el motor térmico, el limitador ni los valores predeterminados.
+- Retira del selector manual el requisito de detectar `.exe` o evidencia CrossOver: se muestran todos los procesos no protegidos para permitir escoger el PID visto en Monitor de Actividad.
+- Ordena primero los procesos que sí tienen evidencia CrossOver, pero conserva el resto como fallback manual explícito.
+- Mantiene la autoaplicación y la recuperación automática limitadas a procesos con evidencia CrossOver para no controlar procesos ajenos sin confirmación.
+- Actualiza la UI para hablar de proceso seleccionable explícito cuando no hay `.exe`.
+- Compilación 36.
+
+## 0.7.0 RC3.8 build 35 — selector completo del árbol CrossOver
+
+- Parte de RC3.7 build 34 sin modificar el motor térmico, el limitador ni los valores predeterminados.
+- El selector manual muestra todo el árbol CrossOver no protegido, incluidos nodos de infraestructura Wine, launchers y ayudantes.
+- Conserva la selección por sesión de procesos sin `.exe` y mantiene la autoaplicación persistente restringida a objetivos con `.exe` válido.
+- Refuerza que la recuperación automática por botella no elija infraestructura Wine ambigua.
+- Actualiza la etiqueta de UI para hablar de procesos del árbol CrossOver, no solo de hosts sin `.exe`.
+- Compilación 35.
+
+## 0.7.0 RC3.7 build 34 — selección manual ampliada por árbol CrossOver
+
+- Parte de RC3.6 build 33 sin modificar el motor térmico, el limitador ni los valores predeterminados.
+- Permite seleccionar manualmente procesos relacionados del árbol CrossOver aunque estén clasificados como launcher o ayudante.
+- Permite confirmar un proceso del árbol sin `.exe` como asociación explícita de sesión; no arma autoaplicación persistente hasta tener un `.exe` válido.
+- Conserva la protección contra autoactivar helpers ambiguos: la recuperación automática sigue filtrando launchers y ayudantes salvo selección explícita.
+- Actualiza avisos de UI para distinguir autoaplicación por `.exe` de control manual por árbol en la sesión actual.
+- Compilación 34.
+
+## 0.7.0 RC3.6 build 33 — prevalidación portable y limpieza de artefactos
+
+- Parte de RC3.5 build 32 sin modificar el motor térmico, el limitador, la selección CrossOver ni los defaults de usuario.
+- Añade `Prevalidar.command` para ejecutar comprobaciones estáticas portables antes de la validación nativa en Apple Silicon.
+- Separa explícitamente prevalidación de build/firma/sensores/pruebas físicas para evitar declarar como nativo un resultado de contenedor.
+- Añade `.gitignore` y retira del control de versiones `.build`, `dist`, `releases`, ZIP generados y `validation_build.log`.
+- Sustituye el manifiesto congelado por `RC36_FROZEN_SHA256.txt`, incluyendo fuentes, pruebas, scripts operativos, documentación de release y configuración de bundle.
+- Compilación 33.
+
 ## 0.7.0 RC3.5 build 32 — integración auditada y paquete limpio
 
 - Parte de RC3 build 30 sin modificar objetivos, histéresis, integral, recuperación ni porcentajes del motor térmico.

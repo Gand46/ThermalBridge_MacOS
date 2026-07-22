@@ -141,6 +141,31 @@ private enum CrossOverDetectionTests {
         precondition(topology.hasCrossOverRuntimeAncestor(of: hiddenGameHost))
         precondition(!topology.hasCrossOverRuntimeAncestor(of: unrelatedHost))
 
+        let nestedLauncherHost = makeSnapshot(
+            pid: 523,
+            parentPID: 521,
+            name: "LauncherHelper",
+            path: "/private/tmp/LauncherHelper",
+            command: ""
+        )
+        let nestedHelperTopology = ProcessTopologyIndex(
+            processes: [runtimeRoot, hiddenGameHost, nestedLauncherHost]
+        )
+        precondition(!nestedLauncherHost.hasDirectCrossOverRuntimeEvidence)
+        precondition(nestedHelperTopology.hasCrossOverRuntimeAncestor(of: nestedLauncherHost))
+
+        let wineInfrastructureChild = makeSnapshot(
+            pid: 524,
+            parentPID: 521,
+            name: "services.exe",
+            path: "/private/tmp/services.exe",
+            command: ""
+        )
+        let fullTreeTopology = ProcessTopologyIndex(
+            processes: [runtimeRoot, hiddenGameHost, wineInfrastructureChild]
+        )
+        precondition(fullTreeTopology.hasCrossOverRuntimeAncestor(of: wineInfrastructureChild))
+
         print("CrossOverDetectionTests: OK")
     }
 }

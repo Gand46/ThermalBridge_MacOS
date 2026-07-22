@@ -28,6 +28,12 @@ struct ThermalControlTests {
         testDetectedWrongBottleIsRejected()
         testUnambiguousStrongExecutableRecovery()
         testAmbiguousStrongExecutableRecoveryAcrossBottles()
+        testB1RampsBeforeCrossingTarget()
+        testB1CPUAndGPUDominance()
+        testB1OutlierSlopeLimited()
+        testB1StaleSensorFloors()
+        testB1ThermalStateEscalation()
+        testB1AntiWindupAndSlowRelease()
         print("ThermalControlTests: OK")
     }
 
@@ -420,7 +426,7 @@ struct ThermalControlTests {
             sensorFresh: true,
             systemThermalState: .nominal
         ), configuration: config, force: true)
-        precondition([first.activityPercent, second.activityPercent] == [100, 98])
+        precondition(first.activityPercent == 100 && second.activityPercent == 98)
         precondition(second.reason.contains("Potencia"))
     }
 
@@ -442,7 +448,7 @@ struct ThermalControlTests {
             sensorFresh: false,
             systemThermalState: .critical
         ), configuration: config, force: true)
-        precondition([first.activityPercent, second.activityPercent] == [40, 25])
+        precondition(first.activityPercent == 40 && second.activityPercent == 25)
         precondition(first.emergency && second.emergency)
     }
 
@@ -565,6 +571,85 @@ struct ThermalControlTests {
         )
         precondition(matches.count == 2)
         precondition(!CrossOverExecutableResolver.isUnambiguousRecoverySet(matches))
+    }
+
+    static func signal(_ seconds: TimeInterval,
+                       cpu: Double?,
+                       gpu: Double?,
+                       state: ThermalLabel = .nominal,
+                       age: TimeInterval? = 0) -> ThermalSignalSnapshot {
+        ThermalSignalSnapshot(date: Date(timeIntervalSince1970: seconds),
+                              cpuTemperature: cpu,
+                              gpuTemperature: gpu,
+                              thermalState: state,
+                              sampleAgeSeconds: age,
+                              source: "test",
+                              quality: (age ?? 99) <= 2 ? .fresh : ((age ?? 99) <= 5 ? .hold : ((age ?? 99) <= 10 ? .stale : .lost)),
+                              cpuSensorCount: cpu == nil ? 0 : 1,
+                              gpuSensorCount: gpu == nil ? 0 : 1,
+                              cpuMaximumSensor: "cpu-test",
+                              gpuMaximumSensor: "gpu-test",
+                              lastError: nil)
+    }
+
+    static func testB1RampsBeforeCrossingTarget() {
+        let governor = B1PredictiveThermalGovernor()
+        var decision: B1GovernorDecision?
+        for i in 0...8 {
+            decision = governor.update(signal: signal(Double(i), cpu: 80 + Double(i), gpu: 70), targetCPU: 90, targetGPU: 85)
+        }
+        precondition((decision?.cpuPredicted ?? 0) > 90)
+        precondition((decision?.appliedControlLevel ?? 0) > 0)
+        precondition(decision?.state != .emergency)
+    }
+
+    static func testB1CPUAndGPUDominance() {
+        let cpuGovernor = B1PredictiveThermalGovernor()
+        let gpuGovernor = B1PredictiveThermalGovernor()
+        let cpuDecision = cpuGovernor.update(signal: signal(0, cpu: 96, gpu: 70), targetCPU: 90, targetGPU: 85, force: true)
+        let gpuDecision = gpuGovernor.update(signal: signal(0, cpu: 70, gpu: 92), targetCPU: 90, targetGPU: 85, force: true)
+        precondition(cpuDecision.requestedControlLevel > 0)
+        precondition(gpuDecision.requestedControlLevel > 0)
+    }
+
+    static func testB1OutlierSlopeLimited() {
+        let governor = B1PredictiveThermalGovernor()
+        _ = governor.update(signal: signal(0, cpu: 70, gpu: nil), targetCPU: 90, targetGPU: 85, force: true)
+        let decision = governor.update(signal: signal(1, cpu: 130, gpu: nil), targetCPU: 90, targetGPU: 85, force: true)
+        precondition((decision.cpuSlope ?? 0) <= B1PredictiveThermalConfiguration.b1Default.maximumPlausibleSlopeCelsiusPerSecond)
+        precondition((decision.cpuFiltered ?? 0) < 130)
+    }
+
+    static func testB1StaleSensorFloors() {
+        let governor = B1PredictiveThermalGovernor()
+        let hold = governor.update(signal: signal(3, cpu: 80, gpu: 70, age: 3), targetCPU: 90, targetGPU: 85, force: true)
+        let stale = governor.update(signal: signal(6, cpu: 80, gpu: 70, age: 6), targetCPU: 90, targetGPU: 85, force: true)
+        let lost = governor.update(signal: signal(11, cpu: 80, gpu: 70, age: 11), targetCPU: 90, targetGPU: 85, force: true)
+        precondition(hold.appliedControlLevel >= 0)
+        precondition(stale.state >= .balanced)
+        precondition(lost.state >= .strong)
+    }
+
+    static func testB1ThermalStateEscalation() {
+        let governor = B1PredictiveThermalGovernor()
+        let fair = governor.update(signal: signal(0, cpu: 75, gpu: 70, state: .fair), targetCPU: 90, targetGPU: 85, force: true)
+        let serious = governor.update(signal: signal(1, cpu: 75, gpu: 70, state: .serious), targetCPU: 90, targetGPU: 85, force: true)
+        let critical = governor.update(signal: signal(2, cpu: 75, gpu: 70, state: .critical), targetCPU: 90, targetGPU: 85, force: true)
+        precondition(fair.state >= .gentle)
+        precondition(serious.state >= .strong)
+        precondition(critical.state == .emergency)
+    }
+
+    static func testB1AntiWindupAndSlowRelease() {
+        let governor = B1PredictiveThermalGovernor()
+        var hot: B1GovernorDecision?
+        for i in 0..<20 {
+            hot = governor.update(signal: signal(Double(i), cpu: 100, gpu: 95), targetCPU: 90, targetGPU: 85)
+        }
+        let hotLevel = hot?.appliedControlLevel ?? 0
+        let cool = governor.update(signal: signal(21, cpu: 80, gpu: 75), targetCPU: 90, targetGPU: 85)
+        precondition(hotLevel > 0)
+        precondition(cool.appliedControlLevel >= hotLevel - B1PredictiveThermalConfiguration.b1Default.restrictionReleasePerSecond * 2)
     }
 
 }
