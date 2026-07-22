@@ -12,3 +12,6 @@ validation_build.log
 
 # Paquetes generados
 *.zip
+
+__pycache__/
+*.py[cod]

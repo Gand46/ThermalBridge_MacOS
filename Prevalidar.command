@@ -22,7 +22,7 @@ sha_check() {
 }
 
 printf '[1/7] Verificando versión y estructura fuente...\n'
-[[ -f Resources/https://github.com/Gand46/ThermalBridge_MacOS/pull/3/conflict?name=CHANGELOG.md&ancestor_oid=5e6dfb11fec81ee011326f90d20a6310ffe56fdf&base_oid=59c34ccac5b8ab08eff55029cd432b08ca4d0b04&head_oid=04ff285a90c141a9f653ecd44b1364b813c4cfccInfo.plist ]] || fail "falta Resources/Info.plist"
+[[ -f Resources/Info.plist ]] || fail "falta Resources/Info.plist"
 [[ -f Sources/AutomaticThermalView.swift ]] || fail "falta AutomaticThermalView"
 [[ -f Sources/ThermalControlLogic.swift ]] || fail "falta ThermalControlLogic"
 [[ -f Sources/ProcessStore.swift ]] || fail "falta ProcessStore"
@@ -33,13 +33,13 @@ printf '[1/7] Verificando versión y estructura fuente...\n'
 [[ ! -e RC3_FROZEN_SHA256.txt ]] || fail "reapareció el manifiesto RC3 obsoleto"
 
 grep -q '<string>0.7.0</string>' Resources/Info.plist || fail "CFBundleShortVersionString inesperado"
-grep -q '<string>38</string>' Resources/Info.plist || fail "CFBundleVersion debe ser 38"
-grep -q 'ThermalBridge Auto 0.7.0 RC3.11' README.md || fail "README no declara RC3.11"
-grep -q 'VALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.11 (38)' README.md || fail "README no documenta la validación RC3.11"
+grep -q '<string>39</string>' Resources/Info.plist || fail "CFBundleVersion debe ser 39"
+grep -q 'ThermalBridge Auto 0.7.0 RC3.12' README.md || fail "README no declara RC3.12"
+grep -q 'VALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.12 (39)' README.md || fail "README no documenta la validación RC3.12"
 
 printf '[2/7] Verificando manifiestos congelados...\n'
 sha_check BASELINE_BETA6_SHA256.txt
-sha_check RC311_FROZEN_SHA256.txt
+sha_check RC312_FROZEN_SHA256.txt
 
 printf '[3/7] Verificando sintaxis Bash portable...\n'
 for script in \
@@ -83,9 +83,10 @@ printf '[6/7] Verificando anclas de seguridad y privacidad...\n'
 grep -q 'ProcessIdentity' Sources/Models.swift || fail "falta identidad PID+startID"
 grep -q 'restoreAll' Sources/AutomaticThermalSupport.swift Sources/ProcessStore.swift || fail "falta restauración global"
 grep -q 'SessionTelemetryWriter' Sources/SessionTelemetry.swift || fail "falta telemetría de sesión"
+[[ -x Tools/Analizar_Telemetria_B1.py ]] || fail "falta analizador B1 ejecutable"
 grep -q 'privacy' README.md SECURITY.md 2>/dev/null || true
 ! grep -REq 'screenshot|captura de pantalla' Sources || fail "no debe incorporarse captura de pantalla en fuentes"
 
 printf '[7/7] Prevalidación completada.\n'
-printf 'PREVALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.11 (38)\n'
+printf 'PREVALIDACIÓN COMPLETADA: ThermalBridge 0.7.0 RC3.12 (39)\n'
 printf 'Nota: build nativo, firma, sensores y CrossOver real siguen pendientes en macOS Apple Silicon.\n'

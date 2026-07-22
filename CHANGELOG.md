@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0 RC3.12 (build 39)
+
+- Ajusta la casilla **Autoaplicar al proceso .exe más demandante** para que el modo automático no diligencie ni persista el campo `.exe`; la selección confirmada queda limitada a la sesión cuando el automático está activo.
+- Inicia la etapa B1 con `Tools/Analizar_Telemetria_B1.py`, analizador offline de telemetría JSONL que calcula °C·s sobre objetivo, picos de sobretemperatura, variabilidad de actividad, emergencia, sensor obsoleto, burst, QoS confirmado y energía directa.
+- Conserva sin cambios el motor térmico Beta 6, el limitador, sensores, QoS, restauración y defaults térmicos.
+
 ## 0.7.0 RC3.11 build 38 — preselección por CPU del .exe más demandante
 
 - Parte de RC3.10 build 37 sin modificar el motor térmico, el limitador ni los valores predeterminados térmicos.

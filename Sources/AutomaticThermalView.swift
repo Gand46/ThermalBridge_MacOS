@@ -28,7 +28,10 @@ struct AutomaticThermalView: View {
             selectBestCandidateIfNeeded()
         }
         .onChange(of: store.automaticSelectHighestCPUExecutableEnabled) { _, enabled in
-            if enabled { selectBestCandidateIfNeeded() }
+            if enabled {
+                store.updateAutomaticThermalExecutableName("")
+                selectBestCandidateIfNeeded()
+            }
         }
     }
 
@@ -163,9 +166,12 @@ struct AutomaticThermalView: View {
                 }
 
                 HStack(spacing: 10) {
-                    TextField("Ejecutable del juego, por ejemplo PRAGMATA.exe",
+                    TextField(store.automaticSelectHighestCPUExecutableEnabled
+                              ? "Auto: se usará el .exe con más CPU al confirmar"
+                              : "Ejecutable del juego, por ejemplo PRAGMATA.exe",
                               text: executableBinding)
                         .textFieldStyle(.roundedBorder)
+                        .disabled(store.automaticSelectHighestCPUExecutableEnabled)
 
                     Button("Usar selección") {
                         guard let selectedProcessID,
@@ -179,7 +185,9 @@ struct AutomaticThermalView: View {
                     }
                 }
 
-                Text("Elegir un proceso no modifica el ejecutable guardado. «Usar selección» confirma el .exe si existe o vincula explícitamente el proceso del árbol para esta sesión.")
+                Text(store.automaticSelectHighestCPUExecutableEnabled
+                     ? "El modo automático no diligencia el campo .exe ni guarda una aplicación persistente; «Usar selección» controla el PID elegido solo para esta sesión. Desactívalo para escribir o guardar un .exe manualmente."
+                     : "Elegir un proceso no modifica el ejecutable guardado. «Usar selección» confirma el .exe si existe o vincula explícitamente el proceso del árbol para esta sesión.")
                     .font(.caption2)
                     .foregroundColor(Color.secondary)
 
@@ -528,8 +536,13 @@ struct AutomaticThermalView: View {
 
     private var executableBinding: Binding<String> {
         Binding(
-            get: { store.automaticThermalConfiguration.executableContains },
+            get: {
+                store.automaticSelectHighestCPUExecutableEnabled
+                    ? ""
+                    : store.automaticThermalConfiguration.executableContains
+            },
             set: { newValue in
+                guard !store.automaticSelectHighestCPUExecutableEnabled else { return }
                 store.updateAutomaticThermalExecutableName(newValue)
             }
         )

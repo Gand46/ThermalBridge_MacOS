@@ -183,6 +183,16 @@ extension ProcessStore {
         }
         temperatureSensor.start(intervalMilliseconds: 1000)
 
+        if automaticSelectHighestCPUExecutableEnabled,
+           !automaticThermalConfiguration.executableContains.isEmpty {
+            var configuration = automaticThermalConfiguration
+            configuration.executableContains = ""
+            automaticThermalPreferredProcessID = nil
+            automaticThermalPreferredExecutableNeedle = nil
+            automaticThermalSessionIDs.removeAll()
+            automaticThermalConfiguration = configuration
+        }
+
         if automaticThermalConfiguration.autoAttach,
            automaticThermalConfiguration.hasTarget {
             automaticThermalEnabled = true
@@ -239,6 +249,19 @@ extension ProcessStore {
             .trimmingCharacters(in: .whitespacesAndNewlines)
         let manualIsExecutable = manual.lowercased().hasSuffix(".exe")
         let directProcessName = process.name.lowercased().hasSuffix(".exe")
+
+        if automaticSelectHighestCPUExecutableEnabled {
+            configuration.executableContains = ""
+            configuration.bottleName = process.crossOverBottleName ?? configuration.bottleName
+            automaticThermalPreferredProcessID = process.identity
+            automaticThermalPreferredExecutableNeedle = nil
+            automaticThermalSessionIDs.formUnion(automaticSessionIdentities(around: process))
+            automaticThermalConfiguration = configuration
+            automaticThermalStatus = "Proceso automático: \(process.displayName)"
+            automaticThermalReason = "Auto .exe por CPU activo; asociación limitada a esta sesión"
+            addLog("CrossOver: PID \(process.pid) seleccionado por mayor CPU sin guardar .exe persistente.")
+            return
+        }
 
         if manualIsExecutable,
            process.containsWindowsExecutable(named: manual) {
